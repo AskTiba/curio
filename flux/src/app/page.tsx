@@ -1,97 +1,86 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { FeedHeader } from "@/components/features/feed/FeedHeader";
-import { FeedItem } from "@/components/features/feed/FeedItem";
+import Link from "next/link";
 
-/**
- * HomePage - Replicating preview.jpg accurately.
- * Layout Hierarchy:
- * 1. FeedHeader (All Items, Buttons)
- * 2. Notification Banner (5 new items)
- * 3. TODAY Heading
- * 4. Grid-aligned Feed Items
- */
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <DashboardLayout>
-      <div className="flex flex-col min-h-full bg-surface">
-        {/* Absolute Top: Header with title and controls */}
-        <FeedHeader />
-
-        {/* Content Flow */}
-        <div className="flex-1 flex flex-col">
-          {/* Notification Banner below the header */}
-          <div className="py-2 bg-accent-subtle text-accent text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition-colors border-b border-border-subtle">
-            <span>↑</span>
-            <span>5 new items since your last visit</span>
-          </div>
-
-          <div className="max-w-[1200px] w-full mx-auto">
-            {/* TODAY Section Label */}
-            <div className="px-7 pt-4">
-              <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-[0.2em]">
-                Today
-              </h3>
+    <div className="min-h-screen flex flex-col bg-bg-primary">
+      <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-accent rounded-md flex items-center justify-center">
+            <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
+              <div className="bg-white rounded-[1px]" />
+              <div className="bg-white/60 rounded-[1px]" />
+              <div className="bg-white/80 rounded-[1px]" />
+              <div className="bg-white rounded-[1px]" />
             </div>
+          </div>
+          <span className="text-[15px] font-extrabold text-text-primary tracking-tight">Frontpage</span>
+        </div>
 
-            {/* List of Feed Items with gutter-aligned dots */}
-            <FeedItem
-              id="1"
-              source="Smashing Magazine"
-              sourceColor="bg-red-500"
-              timestamp="2h ago"
-              title="Practical Guide To Designing For Colorblind Users"
-              excerpt="Color blindness affects roughly 8% of men and 0.5% of women worldwide. Yet most interfaces rely heavily on color to convey meaning, status, and hierarchy. Here's how to design interfaces that work for everyone without sacrificing visual richness."
-              category="Design"
-              categoryVariant="design"
-            />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/sign-in"
+            className="text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors px-3 py-1.5"
+          >
+            Sign In
+          </Link>
+          <Link
+            href="/sign-up"
+            className="text-sm font-semibold bg-accent text-white px-4 py-1.5 rounded-md hover:bg-accent-hover transition-colors"
+          >
+            Get Started
+          </Link>
+        </div>
+      </header>
 
-            <FeedItem
-              id="2"
-              source="Cloudflare Blog"
-              sourceColor="bg-orange-500"
-              timestamp="3h ago"
-              title="How We Reduced P99 Latency by 60% with Edge-First Caching"
-              excerpt="Our engineering team spent the last quarter rethinking how we cache at the edge. The result: dramatically lower tail latency for our most demanding customers, and lessons applicable to any distributed system."
-              category="Backend & DevOps"
-              categoryVariant="backend"
-            />
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
+        <div className="max-w-2xl text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold text-text-primary leading-tight mb-4">
+            Your personalized front page for tech content
+          </h1>
+          <p className="text-lg text-text-secondary mb-8 max-w-lg mx-auto">
+            Pull RSS and Atom feeds from dev blogs, newsletters, and publications into one clean, calm reading dashboard.
+          </p>
 
-            <FeedItem
-              id="3"
-              source="Simon Willison"
-              sourceColor="bg-gray-800"
-              timestamp="4h ago"
-              title="Building Effective RAG Systems: What Actually Works in Production"
-              excerpt="After months of experimenting with retrieval-augmented generation in real applications, here's what I've learned about chunking strategies, embedding models, and the surprising importance of metadata filtering."
-              category="AI & ML"
-              categoryVariant="aiml"
-            />
-
-            <FeedItem
-              id="4"
-              source="Josh Comeau"
-              sourceColor="bg-indigo-600"
-              timestamp="5h ago"
-              title="The Surprising Truth About CSS Container Queries"
-              excerpt="Container queries have been available for a while now, but most developers are still using them like media queries with a different syntax. There's a much more powerful mental model that unlocks truly reusable components."
-              category="Frontend"
-              categoryVariant="frontend"
-            />
-
-            <FeedItem
-              id="5"
-              source="Figma Blog"
-              sourceColor="bg-black"
-              timestamp="6h ago"
-              title="Introducing Variables 2.0: Design Tokens Meet Real Logic"
-              excerpt="Variables in Figma now support conditional logic, mathematical expressions, and cross-file references. This unlocks design system workflows that were previously only possible in code."
-              category="Design"
-              categoryVariant="design"
-              isRead
-            />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/sign-up"
+              className="bg-accent text-white px-6 py-2.5 rounded-md font-semibold hover:bg-accent-hover transition-colors text-sm"
+            >
+              Create Account
+            </Link>
+            <Link
+              href="/feed"
+              className="bg-bg-tertiary text-text-primary px-6 py-2.5 rounded-md font-semibold hover:bg-border transition-colors text-sm border border-border-subtle"
+            >
+              Try as Guest
+            </Link>
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+
+        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl">
+          <div className="text-center">
+            <div className="w-10 h-10 bg-accent-subtle rounded-lg flex items-center justify-center mx-auto mb-3">
+              <div className="w-5 h-5 text-accent font-bold text-sm">+</div>
+            </div>
+            <h3 className="font-semibold text-sm text-text-primary mb-1">Add Any Feed</h3>
+            <p className="text-xs text-text-tertiary">RSS, Atom — add blogs, newsletters, changelogs from any source</p>
+          </div>
+          <div className="text-center">
+            <div className="w-10 h-10 bg-accent-subtle rounded-lg flex items-center justify-center mx-auto mb-3">
+              <div className="w-5 h-5 text-accent font-bold text-sm">B</div>
+            </div>
+            <h3 className="font-semibold text-sm text-text-primary mb-1">Organize by Category</h3>
+            <p className="text-xs text-text-tertiary">Group feeds into custom categories. See unread counts at a glance</p>
+          </div>
+          <div className="text-center">
+            <div className="w-10 h-10 bg-accent-subtle rounded-lg flex items-center justify-center mx-auto mb-3">
+              <div className="w-5 h-5 text-accent font-bold text-sm">R</div>
+            </div>
+            <h3 className="font-semibold text-sm text-text-primary mb-1">Bookmark & Search</h3>
+            <p className="text-xs text-text-tertiary">Save articles for later. Full-text search across all your feeds</p>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

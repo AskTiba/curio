@@ -1,0 +1,119 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/Button";
+
+export function SignInForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/feed");
+    router.refresh();
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInAnonymously();
+
+    if (error) {
+      setError(error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/feed");
+    router.refresh();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-sm">
+      <div className="flex flex-col gap-1">
+        <label htmlFor="email" className="text-sm font-medium text-text-secondary">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          className="px-3 py-2 rounded-md border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none text-sm"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label htmlFor="password" className="text-sm font-medium text-text-secondary">
+          Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Your password"
+          required
+          className="px-3 py-2 rounded-md border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none text-sm"
+        />
+      </div>
+
+      {error && (
+        <p className="text-sm text-error">{error}</p>
+      )}
+
+      <Button type="submit" isLoading={isLoading} className="w-full">
+        Sign In
+      </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-surface px-2 text-text-tertiary">or</span>
+        </div>
+      </div>
+
+      <Button type="button" variant="secondary" onClick={handleGuestSignIn} disabled={isLoading} className="w-full">
+        Try as Guest
+      </Button>
+
+      <p className="text-sm text-text-tertiary text-center">
+        Don&apos;t have an account?{" "}
+        <Link href="/sign-up" className="text-accent hover:underline">
+          Sign up
+        </Link>
+      </p>
+      <p className="text-sm text-text-tertiary text-center">
+        <Link href="/password-reset" className="text-accent hover:underline">
+          Forgot password?
+        </Link>
+      </p>
+    </form>
+  );
+}

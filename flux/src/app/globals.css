@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Precisely following the project memory and preview.jpg */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #F3F7FA;
+  --color-bg-tertiary: #EEF2F6;
+  --color-surface: #ffffff;
+  
+  --color-border: #E5E9F0;
+  --color-border-subtle: #F0F4F8;
+
+  --color-text-primary: #1A1D23;
+  --color-text-secondary: #4B5563;
+  --color-text-tertiary: #9CA3AF;
+
+  --color-accent: #2563EB;
+  --color-accent-hover: #1D4ED8;
+  --color-accent-subtle: #EBF1FF;
+
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+
+  --color-unread-indicator: #2563EB;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Georgia', 'Charter', serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Specific Type Scale */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+
+  /* Layout Constants */
+  --width-sidebar: 16.25rem;
+  --width-content-max: 45rem;
+}
+
+/* Explicitly disabling Dark Mode for this design phase to match preview.jpg */
+
+@layer base {
+  *, ::after, ::before, ::placeholder, ::file-selector-button {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}

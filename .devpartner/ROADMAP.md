@@ -2,25 +2,28 @@
 
 > Current goals, future work, tech debt, and risk register.
 
-## Active Phase: Phase 0 — Bootstrap & Setup
+## Active Phase: Phase 4 — Core UI Features
 
 | Step | Status |
 |------|--------|
-| .devpartner/ state system | In progress |
-| Scaffold folder structure | Pending |
-| Install dependencies | Pending |
-| Supabase project + Drizzle config | Pending |
+| .devpartner/ state system | Completed |
+| Scaffold folder structure | Completed |
+| Install dependencies | Completed |
+| Supabase project + Drizzle config | Completed |
+| Database schema + Auth (Supabase, Drizzle) | Completed |
+| Feed parsing engine (rss-parser, API routes) | Completed |
+| Build article Reader View UI | In progress |
+| Design Saved, Digest, and Discover UI | Pending |
+| Design Add Feed & Category Dialog UI | Pending |
 
 ## Planned Phases
 
 | Phase | Description | Target |
 |-------|-------------|--------|
-| 1 | Database schema + Auth (Supabase, Drizzle, sign-up/sign-in/guest) | Next |
-| 2 | Feed parsing engine (rss-parser, API routes, normalization) | After Phase 1 |
-| 3 | TanStack Query data layer (hooks, optimistic updates, wire up UI) | After Phase 2 |
-| 4 | Core features (feed management, categories, read tracking, reader view, search) | After Phase 3 |
-| 5 | Landing page + Guest experience | After Phase 4 |
-| 6 | AI Summarization differentiator | After Phase 5 |
+| 3 | TanStack Query data layer (hooks, optimistic updates, wire up UI) | Deferred (Logic) |
+| 4 | Core logic features (feed management CRUD, categories, read tracking) | Deferred (Logic) |
+| 5 | Guest experience database seeding | Deferred (Logic) |
+| 6 | AI Summarization differentiator | Pending |
 | 7 | Polish (dark mode, keyboard nav, performance, a11y, deploy) | Final |
 
 ## Stretch / Backlog

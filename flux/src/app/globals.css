@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../**/*.{ts,tsx}";
 
 @theme {
   /* Colors - Precisely following the project memory and preview.jpg */

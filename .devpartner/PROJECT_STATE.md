@@ -12,16 +12,17 @@ Auth system built. Users can sign up, sign in, reset passwords, or browse as gue
 - **Dashboard**: Full UI shell matching `preview.jpg`
 - **Database**: 7 tables migrated to Supabase (profiles, feeds, feed_items, categories, user_feeds, user_interactions, user_preferences)
 - **UI components**: TopNav, Sidebar, FeedHeader, FeedItem, Badge, Button, Card, Skeleton
-- **Git**: Clean, 2 commits in history
+- **Feed Parsing**: RSS/Atom parsing service and fetch/refresh/validate API routes implemented
+- **Git**: Clean workspace setup
 
 ## In Progress
 
 | Item | Owner | Next Step | Status |
 |------|-------|-----------|--------|
-| **Phase 2: Feed Parsing** | Backend Eng | Build rss-parser service + API routes | **Ready to start** |
-| Phase 3: TanStack Query | Frontend Arch | Hooks, wire data to UI | Pending Phase 2 |
-| Phase 4: Core features | Full-stack | Feed CRUD, categories, reader, search | Pending Phase 3 |
-| Phase 5: Guest seeding | Full-stack | Seed guest with 19 feeds | Pending Phase 2 |
+| **Phase 4: Core UI features** | Full-stack | Build article Reader View component | **Active** |
+| Phase 3: TanStack Query | Frontend Arch | Connect hooks & wire real data to UI | Deferred |
+| Phase 4: Core logic features | Full-stack | Feed CRUD, categories sync, bookmarks | Deferred |
+| Phase 5: Guest seeding | Full-stack | Seed guest with 19 feeds | Deferred |
 | Phase 6: AI Summarization | Backend Eng | OpenAI integration | Pending |
 | Phase 7: Polish | Full-stack | Dark mode, keyboard nav, deploy | Final phase |
 

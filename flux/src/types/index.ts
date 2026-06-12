@@ -2,12 +2,12 @@
  * Unified Article type representing a single item from an RSS/Atom feed.
  */
 export interface Article {
-  id: string; // Deterministic hash of link/title for deduplication
+  id: string;
   title: string;
   excerpt: string;
   content?: string;
   author?: string;
-  publishedAt: Date;
+  publishedAt?: Date;
   sourceFeedId: string;
   url: string;
   thumbnailUrl?: string;

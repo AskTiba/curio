@@ -80,3 +80,98 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* Premium Reader Content Serif Typography Styles */
+.reader-content {
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+.reader-content p {
+  margin-bottom: var(--spacing-6);
+}
+
+.reader-content h1,
+.reader-content h2,
+.reader-content h3,
+.reader-content h4 {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-4);
+  line-height: var(--leading-snug);
+}
+
+.reader-content h1 { font-size: var(--text-2xl); }
+.reader-content h2 { font-size: var(--text-xl); }
+.reader-content h3 { font-size: var(--text-lg); }
+.reader-content h4 { font-size: var(--text-base); }
+
+.reader-content blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--spacing-4);
+  margin: var(--spacing-6) 0;
+  font-style: italic;
+  color: var(--color-text-primary);
+}
+
+.reader-content pre {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: var(--spacing-6) 0;
+}
+
+.reader-content code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background-color: var(--color-bg-secondary);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+}
+
+.reader-content pre code {
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  color: inherit;
+}
+
+.reader-content ul {
+  list-style-type: disc;
+  padding-left: var(--spacing-6);
+  margin-bottom: var(--spacing-6);
+}
+
+.reader-content ol {
+  list-style-type: decimal;
+  padding-left: var(--spacing-6);
+  margin-bottom: var(--spacing-6);
+}
+
+.reader-content li {
+  margin-bottom: var(--spacing-2);
+}
+
+.reader-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: var(--spacing-6) 0;
+}
+
+.reader-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reader-content a:hover {
+  color: var(--color-accent-hover);
+}

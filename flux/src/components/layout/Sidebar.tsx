@@ -6,6 +6,11 @@ import { usePathname } from "next/navigation";
 import { FileText, Bookmark, CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddCategoryDialog } from "@/components/features/categories/AddCategoryDialog";
+import { useFeeds, useFeedItems } from "@/hooks/useFeeds";
+import { useCategories } from "@/hooks/useCategories";
+
+import { EditFeedCategoryDialog } from "@/components/features/feed/EditFeedCategoryDialog";
+import { MoreHorizontal } from "lucide-react";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -53,7 +58,7 @@ function NavItem({
   );
 
   const classes = cn(
-    "flex items-center justify-between w-full px-2 py-1 rounded-md transition-all text-xs font-medium group",
+    "flex items-center justify-between w-full px-2 py-1 rounded-md transition-all text-xs font-medium group cursor-pointer",
     isActive
       ? "bg-accent-subtle text-accent"
       : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
@@ -79,12 +84,13 @@ interface SubNavItemProps {
   count: number;
   letter: string;
   color: string;
+  onEdit?: () => void;
 }
 
-function SubNavItem({ label, count, letter, color }: SubNavItemProps) {
+function SubNavItem({ label, count, letter, color, onEdit }: SubNavItemProps) {
   return (
-    <button className="flex items-center text-xs justify-between w-full py-1 pl-3 pr-2 rounded-md transition-all  group hover:bg-bg-tertiary">
-      <div className="flex items-center gap-1.5">
+    <div className="flex items-center text-xs justify-between w-full py-1 pl-3 pr-2 rounded-md transition-all group hover:bg-bg-tertiary">
+      <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
         <div
           className={cn(
             "size-3.5 rounded-sm flex items-center justify-center text-[8px] text-white shrink-0",
@@ -93,12 +99,23 @@ function SubNavItem({ label, count, letter, color }: SubNavItemProps) {
         >
           {letter}
         </div>
-        <span className="text-text-secondary group-hover:text-text-primary font-medium">
+        <span className="text-text-secondary group-hover:text-text-primary font-medium truncate">
           {label}
         </span>
       </div>
-      <span className="text-text-tertiary">{count}</span>
-    </button>
+      <div className="flex items-center gap-1 shrink-0">
+        <span className="text-text-tertiary group-hover:hidden">{count}</span>
+        {onEdit && (
+          <button 
+            onClick={onEdit}
+            className="hidden group-hover:flex items-center justify-center size-5 rounded hover:bg-bg-secondary text-text-tertiary hover:text-text-primary"
+            title="Move feed"
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -112,6 +129,53 @@ function SubNavItem({ label, count, letter, color }: SubNavItemProps) {
 export function Sidebar() {
   const pathname = usePathname();
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [editingFeed, setEditingFeed] = useState<{ id: string; title: string | null; categoryId: string | null } | null>(null);
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+
+  const { data: feeds = [] } = useFeeds();
+  const { data: categories = [] } = useCategories();
+  const { data: items = [] } = useFeedItems();
+
+  const unreadItemsCount = items.filter(i => !i.isRead).length;
+  const savedItemsCount = items.filter(i => i.isBookmarked).length;
+
+  const toggleCategory = (id: string) => {
+    setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  // Group feeds by category
+  const feedsByCategory: Record<string, typeof feeds> = {};
+  const uncategorizedFeeds: typeof feeds = [];
+
+  feeds.forEach(feed => {
+    if (feed.categoryId) {
+      if (!feedsByCategory[feed.categoryId]) feedsByCategory[feed.categoryId] = [];
+      feedsByCategory[feed.categoryId].push(feed);
+    } else {
+      uncategorizedFeeds.push(feed);
+    }
+  });
+
+  const getFeedUnreadCount = (feedId: string) => {
+    return items.filter(i => i.feedId === feedId && !i.isRead).length;
+  };
+
+  const getCategoryUnreadCount = (categoryId: string) => {
+    const catFeeds = feedsByCategory[categoryId] || [];
+    return catFeeds.reduce((acc, feed) => acc + getFeedUnreadCount(feed.id), 0);
+  };
+
+  const getColorClasses = (index: number) => {
+    const colors = [
+      "bg-blue-500", "bg-pink-500", "bg-orange-500", "bg-indigo-500", 
+      "bg-purple-500", "bg-green-500", "bg-teal-500", "bg-red-500"
+    ];
+    return colors[index % colors.length];
+  };
+
+  console.log("[Sidebar Debug] Feeds fetched:", feeds.map(f => ({ id: f.id, title: f.title, categoryId: f.categoryId })));
+  console.log("[Sidebar Debug] Categories fetched:", categories.map(c => ({ id: c.id, name: c.name })));
+  console.log("[Sidebar Debug] Uncategorized Feeds:", uncategorizedFeeds.map(f => f.id));
 
   return (
     <>
@@ -122,14 +186,14 @@ export function Sidebar() {
             <NavItem
               icon={FileText}
               label="All Items"
-              count={47}
+              count={unreadItemsCount}
               isActive={pathname === "/feed"}
               href="/feed"
             />
             <NavItem
               icon={Bookmark}
               label="Saved"
-              count={12}
+              count={savedItemsCount}
               isActive={pathname === "/saved"}
               href="/saved"
             />
@@ -141,7 +205,7 @@ export function Sidebar() {
               <span className="text-[10px] font-bold text-text-tertiary uppercase">Categories</span>
               <button 
                 onClick={() => setIsAddCategoryOpen(true)}
-                className="text-text-tertiary hover:text-accent transition-colors"
+                className="text-text-tertiary hover:text-accent transition-colors cursor-pointer"
                 aria-label="Add category"
               >
                 <Plus className="w-3 h-3" />
@@ -149,98 +213,59 @@ export function Sidebar() {
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <NavItem
-                icon={Circle}
-                label="Frontend"
-                count={14}
-                dotColor="bg-blue-500"
-              />
-              {/* Frontend Sub-items */}
-              <div className="flex flex-col gap-0.5 mb-2">
-                <SubNavItem
-                  label="CSS-Tricks"
-                  count={3}
-                  letter="C"
-                  color="bg-[#ff7a2d]"
-                />
-                <SubNavItem
-                  label="Smashing Mag"
-                  count={4}
-                  letter="S"
-                  color="bg-[#e93d2b]"
-                />
-                <SubNavItem
-                  label="Josh Comeau"
-                  count={2}
-                  letter="J"
-                  color="bg-[#6b46c1]"
-                />
-                <SubNavItem
-                  label="Kent C. Dodds"
-                  count={2}
-                  letter="K"
-                  color="bg-[#3182ce]"
-                />
-                <SubNavItem
-                  label="web.dev"
-                  count={3}
-                  letter="w"
-                  color="bg-[#00a3af]"
-                />
-              </div>
+              {categories.map((category, index) => {
+                const isExpanded = expandedCats[category.id] !== false; // default true
+                const catFeeds = feedsByCategory[category.id] || [];
+                const dotColor = getColorClasses(index);
 
-              <NavItem
-                icon={Circle}
-                label="Design"
-                count={11}
-                dotColor="bg-pink-500"
-              />
-              {/* Design Sub-items */}
-              <div className="flex flex-col gap-0.5 mb-2">
-                <SubNavItem
-                  label="Sidebar.io"
-                  count={5}
-                  letter="S"
-                  color="bg-[#7048e8]"
-                />
-                <SubNavItem
-                  label="NN Group"
-                  count={2}
-                  letter="N"
-                  color="bg-[#2f855a]"
-                />
-                <SubNavItem
-                  label="Figma Blog"
-                  count={2}
-                  letter="F"
-                  color="bg-[#1a202c]"
-                />
-                <SubNavItem
-                  label="UX Collective"
-                  count={2}
-                  letter="U"
-                  color="bg-[#2c5282]"
-                />
-              </div>
+                return (
+                  <div key={category.id}>
+                    <div onClick={() => toggleCategory(category.id)}>
+                      <NavItem
+                        icon={Circle}
+                        label={category.name}
+                        count={getCategoryUnreadCount(category.id)}
+                        dotColor={dotColor}
+                      />
+                    </div>
+                    {isExpanded && catFeeds.length > 0 && (
+                      <div className="flex flex-col gap-0.5 mb-2">
+                        {catFeeds.map(feed => (
+                          <SubNavItem
+                            key={feed.id}
+                            label={feed.title || "Unknown Feed"}
+                            count={getFeedUnreadCount(feed.id)}
+                            letter={(feed.title || "U")[0].toUpperCase()}
+                            color={dotColor}
+                            onEdit={() => setEditingFeed(feed)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
-              <NavItem
-                icon={Circle}
-                label="Backend & DevOps"
-                count={8}
-                dotColor="bg-orange-500"
-              />
-              <NavItem
-                icon={Circle}
-                label="General Tech"
-                count={6}
-                dotColor="bg-indigo-500"
-              />
-              <NavItem
-                icon={Circle}
-                label="AI & ML"
-                count={8}
-                dotColor="bg-purple-500"
-              />
+              {/* Uncategorized Feeds */}
+              {uncategorizedFeeds.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between px-2 py-2">
+                    <span className="text-[10px] font-bold text-text-tertiary uppercase">Uncategorized</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    {uncategorizedFeeds.map(feed => (
+                      <SubNavItem
+                        key={feed.id}
+                        label={feed.title || "Unknown Feed"}
+                        count={getFeedUnreadCount(feed.id)}
+                        letter={(feed.title || "U")[0].toUpperCase()}
+                        color="bg-gray-500"
+                        onEdit={() => setEditingFeed(feed)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -259,6 +284,12 @@ export function Sidebar() {
       <AddCategoryDialog 
         isOpen={isAddCategoryOpen} 
         onClose={() => setIsAddCategoryOpen(false)} 
+      />
+
+      <EditFeedCategoryDialog
+        isOpen={!!editingFeed}
+        onClose={() => setEditingFeed(null)}
+        feed={editingFeed}
       />
     </>
   );

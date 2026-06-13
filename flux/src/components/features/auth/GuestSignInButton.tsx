@@ -7,10 +7,10 @@ import { createClient } from "@/utils/supabase/client";
 export function GuestSignInButton() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleGuestSignIn = async () => {
     setIsLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInAnonymously();
 
     if (error) {

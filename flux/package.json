@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "vercel-build": "npx drizzle-kit migrate && next build"
+    "vercel-build": "if [ -n \"$DATABASE_URL\" ]; then npx drizzle-kit migrate; fi && next build"
   },
   "dependencies": {
     "@next/swc-wasm-nodejs": "^16.2.9",

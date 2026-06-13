@@ -11,11 +11,8 @@ export function useToggleRead() {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: FEED_ITEMS_QUERY_KEY });
 
-      // Snapshot the previous value
-      const previousItems = queryClient.getQueryData(FEED_ITEMS_QUERY_KEY);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(FEED_ITEMS_QUERY_KEY, (old: any) => {
+      // Optimistically update to the new value across all query key variations (like limits)
+      queryClient.setQueriesData({ queryKey: FEED_ITEMS_QUERY_KEY }, (old: any) => {
         if (!old) return old;
         return old.map((item: any) => {
           if (item.id === itemId) {
@@ -25,18 +22,11 @@ export function useToggleRead() {
         });
       });
 
-      return { previousItems };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousItems) {
-        queryClient.setQueryData(FEED_ITEMS_QUERY_KEY, context.previousItems);
-      }
+      return {}; // We aren't doing strict rollback per key here to save complexity, but could via context
     },
     onSettled: () => {
-      // We don't necessarily need to invalidate to prevent aggressive jumping,
-      // but if we want to ensure sync, we can invalidate. 
-      // Let's leave it to optimistic updates for a snapper feel.
+      // Invalidate to ensure the server and client are perfectly in sync
+      queryClient.invalidateQueries({ queryKey: FEED_ITEMS_QUERY_KEY });
     },
   });
 }

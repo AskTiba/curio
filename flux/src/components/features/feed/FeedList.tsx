@@ -5,9 +5,14 @@ import { FeedItem } from "@/components/features/feed/FeedItem";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { formatDistanceToNow } from "date-fns";
 
+import { useMarkAllAsRead } from "@/hooks/useInteractions";
+import { CheckCheck } from "lucide-react";
+
 export function FeedList() {
   const { data: items, isLoading, isError } = useFeedItems();
+  const { mutate: markAllAsRead, isPending: isMarkingRead } = useMarkAllAsRead();
 
+  // ... (keeping existing render logic for early returns) ...
   if (isLoading) {
     return (
       <div className="flex flex-col">
@@ -39,12 +44,24 @@ export function FeedList() {
     );
   }
 
+  const unreadCount = items.filter(i => !i.isRead).length;
+
   return (
     <div className="flex flex-col">
-      <div className="px-7 pt-4">
+      <div className="px-7 pt-4 pb-2 flex items-center justify-between">
         <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-[0.2em]">
           Latest
         </h3>
+        {unreadCount > 0 && (
+          <button 
+            onClick={() => markAllAsRead()}
+            disabled={isMarkingRead}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50"
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+            Mark all as read
+          </button>
+        )}
       </div>
       
       {items.map((item) => {

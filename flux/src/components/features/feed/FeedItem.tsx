@@ -3,6 +3,7 @@
 import { Badge, badgeVariants } from "@/components/ui/Badge";
 import { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { useToggleRead } from "@/hooks/useInteractions";
 
 interface FeedItemProps {
   id: string;
@@ -23,6 +24,7 @@ interface FeedItemProps {
  * - Metadata, Title, and Excerpt in the primary column
  */
 export function FeedItem({
+  id,
   source,
   sourceColor = "bg-red-500",
   timestamp,
@@ -32,8 +34,23 @@ export function FeedItem({
   categoryVariant,
   isRead,
 }: FeedItemProps) {
+  const { mutate } = useToggleRead();
+
+  const handleClick = () => {
+    if (!isRead) {
+      mutate({ itemId: id, isRead: true });
+    }
+    // Future: Handle opening the reader view or link here
+  };
+
   return (
-    <article className="group grid grid-cols-[2.5rem_1fr] text-sm px-4 py-4 border-b border-border hover:bg-bg-secondary/50 transition-colors cursor-pointer relative">
+    <article 
+      className={cn(
+        "group grid grid-cols-[2.5rem_1fr] text-sm px-4 py-4 border-b border-border hover:bg-bg-secondary/50 transition-colors cursor-pointer relative",
+        isRead && "opacity-75"
+      )}
+      onClick={handleClick}
+    >
       {/* Column 1: Unread Indicator (At the start) */}
       <div className="flex justify-center pt-1">
         {!isRead && (
@@ -45,7 +62,7 @@ export function FeedItem({
       <div className="flex flex-col gap-2">
         {/* Source Meta Row (Aligned with dot) */}
         <div className="flex items-center gap-2 text-sm font-medium">
-          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor)}>
+          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor, isRead && "grayscale opacity-80")}>
             {source.charAt(0)}
           </div>
           <span className="text-text-secondary">{source}</span>
@@ -54,7 +71,7 @@ export function FeedItem({
         </div>
 
         {/* Title */}
-        <h2 className="font-bold text-[15px] text-text-primary leading-tight group-hover:text-accent transition-colors">
+        <h2 className={cn("text-[15px] leading-tight group-hover:text-accent transition-colors", isRead ? "font-semibold text-text-secondary" : "font-bold text-text-primary")}>
           {title}
         </h2>
 

@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toggleItemRead, markAllAsRead } from "@/actions/interactions";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toggleItemRead, markAllAsRead, toggleBookmark, getBookmarkedItems } from "@/actions/interactions";
 import { FEED_ITEMS_QUERY_KEY } from "@/hooks/useFeeds";
 
 export function useToggleRead() {
@@ -39,5 +39,42 @@ export function useMarkAllAsRead() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FEED_ITEMS_QUERY_KEY });
     },
+  });
+}
+
+export const BOOKMARKS_QUERY_KEY = ["bookmarks"];
+
+export function useToggleBookmark() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, isBookmarked }: { itemId: string; isBookmarked: boolean }) => toggleBookmark(itemId, isBookmarked),
+    onMutate: async ({ itemId, isBookmarked }) => {
+      await queryClient.cancelQueries({ queryKey: FEED_ITEMS_QUERY_KEY });
+
+      // Optimistically update isBookmarked in the feed items cache
+      queryClient.setQueriesData({ queryKey: FEED_ITEMS_QUERY_KEY }, (old: any) => {
+        if (!old) return old;
+        return old.map((item: any) => {
+          if (item.id === itemId) {
+            return { ...item, isBookmarked };
+          }
+          return item;
+        });
+      });
+
+      return {};
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: FEED_ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: BOOKMARKS_QUERY_KEY });
+    },
+  });
+}
+
+export function useBookmarkedItems() {
+  return useQuery({
+    queryKey: BOOKMARKS_QUERY_KEY,
+    queryFn: () => getBookmarkedItems(),
   });
 }

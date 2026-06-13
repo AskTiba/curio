@@ -3,11 +3,15 @@
 import { Bookmark, ChevronDown, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
+interface SavedHeaderProps {
+  count?: number;
+}
+
 /**
  * SavedHeader — Header bar for the Saved/Bookmarks page.
  * Shows the bookmark count, sort control, search filter, and bulk clear.
  */
-export function SavedHeader() {
+export function SavedHeader({ count = 0 }: SavedHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row text-sm sm:items-center justify-between px-4 sm:px-8 py-3 sm:py-4 gap-3 sm:gap-0 border-b border-border bg-surface sticky top-0 z-40">
       <div className="flex items-baseline gap-3 shrink-0">
@@ -15,7 +19,7 @@ export function SavedHeader() {
           <Bookmark className="w-4 h-4 text-accent" />
           <h1 className="font-semibold text-base tracking-tight">Saved</h1>
         </div>
-        <span className="text-text-tertiary font-medium">12 articles</span>
+        <span className="text-text-tertiary font-medium">{count} {count === 1 ? "article" : "articles"}</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-medium text-text-tertiary">

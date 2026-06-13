@@ -92,6 +92,7 @@ export function FeedList() {
               category={item.categoryName || "Uncategorized"}
               categoryVariant="default"
               isRead={item.isRead}
+              isBookmarked={item.isBookmarked}
               onOpenArticle={() => setSelectedArticle({
                 title: item.title,
                 content: item.content || item.excerpt || "",

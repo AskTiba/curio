@@ -1,9 +1,10 @@
 "use client";
 
+import { Bookmark } from "lucide-react";
 import { Badge, badgeVariants } from "@/components/ui/Badge";
 import { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { useToggleRead } from "@/hooks/useInteractions";
+import { useToggleRead, useToggleBookmark } from "@/hooks/useInteractions";
 
 interface FeedItemProps {
   id: string;
@@ -15,6 +16,7 @@ interface FeedItemProps {
   category: string;
   categoryVariant?: VariantProps<typeof badgeVariants>["variant"];
   isRead?: boolean;
+  isBookmarked?: boolean;
   onOpenArticle?: () => void;
 }
 
@@ -34,13 +36,15 @@ export function FeedItem({
   category,
   categoryVariant,
   isRead,
+  isBookmarked,
   onOpenArticle,
 }: FeedItemProps) {
-  const { mutate } = useToggleRead();
+  const { mutate: toggleRead } = useToggleRead();
+  const { mutate: toggleBookmark } = useToggleBookmark();
 
   const handleClick = () => {
     if (!isRead) {
-      mutate({ itemId: id, isRead: true });
+      toggleRead({ itemId: id, isRead: true });
     }
     onOpenArticle?.();
   };
@@ -53,11 +57,28 @@ export function FeedItem({
       )}
       onClick={handleClick}
     >
-      {/* Column 1: Unread Indicator (At the start) */}
-      <div className="flex justify-center pt-1">
+      {/* Column 1: Unread Indicator + Bookmark */}
+      <div className="flex flex-col items-center gap-1.5 pt-1">
         {!isRead && (
           <div className="w-1.5 h-1.5 mt-1 bg-accent rounded-full shadow-[0_0_0_2px_rgba(37,99,235,0.1)]" />
         )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleBookmark({ itemId: id, isBookmarked: !isBookmarked });
+          }}
+          className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent/10 transition-all cursor-pointer"
+          title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+        >
+          <Bookmark
+            className={cn(
+              "w-3 h-3",
+              isBookmarked
+                ? "text-accent fill-accent opacity-100"
+                : "text-text-tertiary"
+            )}
+          />
+        </button>
       </div>
 
       {/* Column 2: Content Container */}

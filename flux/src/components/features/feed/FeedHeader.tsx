@@ -8,6 +8,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useFeedItems } from "@/hooks/useFeeds";
 
 /**
  * Feed Header from preview.jpg
@@ -16,11 +17,14 @@ import { Button } from "@/components/ui/Button";
  * - Sorting & Action buttons
  */
 export function FeedHeader() {
+  const { data: items = [] } = useFeedItems();
+  const unreadCount = items.filter(i => !i.isRead).length;
+
   return (
     <div className="flex flex-col sm:flex-row text-sm sm:items-center justify-between px-4 sm:px-8 py-3 sm:py-4 gap-3 sm:gap-0 border-b border-border bg-surface sticky top-0 z-40">
       <div className="flex items-baseline gap-3 shrink-0">
         <h1 className=" font-semibold text-base tracking-tight">All Items</h1>
-        <span className=" text-text-tertiary font-medium">47 unread</span>
+        <span className=" text-text-tertiary font-medium">{unreadCount} unread</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-medium text-text-tertiary">

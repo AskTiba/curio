@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { userInteractions, feedItems, userFeeds } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { userInteractions, feedItems, userFeeds, feeds, categories } from "@/db/schema";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -78,4 +78,60 @@ export async function markAllAsRead() {
   }
 
   revalidatePath("/", "layout");
+}
+
+export async function toggleBookmark(itemId: string, isBookmarked: boolean) {
+  const userId = await getUserId();
+
+  await db.insert(userInteractions).values({
+    userId,
+    itemId,
+    isBookmarked,
+    bookmarkedAt: isBookmarked ? new Date() : null,
+  }).onConflictDoUpdate({
+    target: [userInteractions.userId, userInteractions.itemId],
+    set: {
+      isBookmarked,
+      bookmarkedAt: isBookmarked ? new Date() : null,
+      updatedAt: new Date(),
+    }
+  });
+}
+
+export async function getBookmarkedItems() {
+  const userId = await getUserId();
+
+  const items = await db
+    .select({
+      id: feedItems.id,
+      feedId: feedItems.feedId,
+      guid: feedItems.guid,
+      title: feedItems.title,
+      excerpt: feedItems.excerpt,
+      content: feedItems.content,
+      author: feedItems.author,
+      url: feedItems.url,
+      thumbnailUrl: feedItems.thumbnailUrl,
+      publishedAt: feedItems.publishedAt,
+      isRead: userInteractions.isRead,
+      isBookmarked: userInteractions.isBookmarked,
+      bookmarkedAt: userInteractions.bookmarkedAt,
+      feedTitle: feeds.title,
+      feedIcon: feeds.iconUrl,
+      categoryName: categories.name,
+    })
+    .from(userInteractions)
+    .innerJoin(feedItems, eq(userInteractions.itemId, feedItems.id))
+    .innerJoin(feeds, eq(feedItems.feedId, feeds.id))
+    .innerJoin(userFeeds, and(eq(userFeeds.feedId, feeds.id), eq(userFeeds.userId, userId)))
+    .leftJoin(categories, eq(userFeeds.categoryId, categories.id))
+    .where(
+      and(
+        eq(userInteractions.userId, userId),
+        eq(userInteractions.isBookmarked, true)
+      )
+    )
+    .orderBy(desc(userInteractions.bookmarkedAt));
+
+  return items;
 }

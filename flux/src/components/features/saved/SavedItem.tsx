@@ -1,52 +1,83 @@
 "use client";
 
 import { Bookmark, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
+import { Badge, badgeVariants } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
+import { useToggleBookmark } from "@/hooks/useInteractions";
 import type { VariantProps } from "class-variance-authority";
-import type { badgeVariants } from "@/components/ui/Badge";
+
+const SOURCE_COLORS = [
+  "bg-red-500", "bg-blue-500", "bg-green-500", "bg-purple-500",
+  "bg-orange-500", "bg-pink-500", "bg-indigo-500", "bg-teal-500",
+  "bg-gray-700", "bg-cyan-500",
+];
+
+function getSourceColor(source: string): string {
+  let hash = 0;
+  for (let i = 0; i < source.length; i++) {
+    hash = source.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return SOURCE_COLORS[Math.abs(hash) % SOURCE_COLORS.length];
+}
+
+type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+
+function getCategoryVariant(category: string | null): BadgeVariant {
+  const map: Record<string, BadgeVariant> = {
+    "Design": "design",
+    "Frontend": "frontend",
+    "Backend & DevOps": "backend",
+    "AI & ML": "aiml",
+  };
+  return map[category ?? ""] || "default";
+}
 
 interface SavedItemProps {
   id: string;
   source: string;
-  sourceColor?: string;
   timestamp: string;
   savedAt: string;
   title: string;
   excerpt: string;
-  category: string;
-  categoryVariant?: VariantProps<typeof badgeVariants>["variant"];
+  category: string | null;
   url?: string;
 }
 
-/**
- * SavedItem — Renders a single bookmarked article.
- * Similar to FeedItem but with a "saved at" timestamp and
- * quick-action buttons (remove bookmark, open original).
- */
 export function SavedItem({
+  id,
   source,
-  sourceColor = "bg-blue-500",
   timestamp,
   savedAt,
   title,
   excerpt,
   category,
-  categoryVariant,
   url = "#",
 }: SavedItemProps) {
+  const { mutate: toggleBookmark } = useToggleBookmark();
+  const sourceColor = getSourceColor(source);
+  const categoryVariant = getCategoryVariant(category);
+
   return (
-    <article className="group grid grid-cols-[2.5rem_1fr] text-sm px-4 py-4 border-b border-border hover:bg-bg-secondary/50 transition-colors cursor-pointer relative">
+    <article className="group grid grid-cols-[2.5rem_1fr] text-sm px-4 py-4 border-b border-border hover:bg-bg-secondary/50 transition-colors relative">
       {/* Column 1: Bookmark Icon */}
       <div className="flex justify-center pt-1">
-        <Bookmark className="w-3.5 h-3.5 text-accent fill-accent/20" />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleBookmark({ itemId: id, isBookmarked: false });
+          }}
+          className="p-0.5 rounded hover:bg-accent/10 transition-colors cursor-pointer"
+          title="Remove bookmark"
+        >
+          <Bookmark className="w-3.5 h-3.5 text-accent fill-accent" />
+        </button>
       </div>
 
       {/* Column 2: Content */}
       <div className="flex flex-col gap-2">
         {/* Source Meta Row */}
         <div className="flex items-center gap-2 text-sm font-medium">
-          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor)}>
+          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white shrink-0", sourceColor)}>
             {source.charAt(0)}
           </div>
           <span className="text-text-secondary">{source}</span>
@@ -66,7 +97,9 @@ export function SavedItem({
 
         {/* Footer Row: Badge + Saved timestamp + Action */}
         <div className="flex items-center gap-3 mt-1">
-          <Badge variant={categoryVariant}>{category}</Badge>
+          {category && (
+            <Badge variant={categoryVariant}>{category}</Badge>
+          )}
           <span className="text-[10px] text-text-tertiary font-medium">
             Saved {savedAt}
           </span>

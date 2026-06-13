@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @source "../**/*.{ts,tsx}";
+@plugin "@tailwindcss/typography";
 
 @theme {
   /* Colors - Precisely following the project memory and preview.jpg */

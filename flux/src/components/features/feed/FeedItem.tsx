@@ -15,6 +15,7 @@ interface FeedItemProps {
   category: string;
   categoryVariant?: VariantProps<typeof badgeVariants>["variant"];
   isRead?: boolean;
+  onOpenArticle?: () => void;
 }
 
 /**
@@ -33,6 +34,7 @@ export function FeedItem({
   category,
   categoryVariant,
   isRead,
+  onOpenArticle,
 }: FeedItemProps) {
   const { mutate } = useToggleRead();
 
@@ -40,7 +42,7 @@ export function FeedItem({
     if (!isRead) {
       mutate({ itemId: id, isRead: true });
     }
-    // Future: Handle opening the reader view or link here
+    onOpenArticle?.();
   };
 
   return (
@@ -88,3 +90,4 @@ export function FeedItem({
     </article>
   );
 }
+

@@ -48,7 +48,7 @@ These are the product and design choices I made where the spec left room for int
 
 ### Initial Approach vs. Final
 
-Initially, I planned to handle all database fetching directly within Server Components to leverage Next.js 15's React Server Components. However, because feed reading requires highly interactive, client-side state (like marking items as read or dynamically moving them between categories), I pivoted to using **TanStack Query** alongside Next.js Server Actions. This provided the perfect blend of secure server-side database access with snappy, optimistic client-side UI updates.
+Initially, I planned to handle all database fetching directly within Server Components to leverage Next.js 16's React Server Components. However, because feed reading requires highly interactive, client-side state (like marking items as read or dynamically moving them between categories), I pivoted to using **TanStack Query** alongside Next.js Server Actions. This provided the perfect blend of secure server-side database access with snappy, optimistic client-side UI updates.
 
 ### Decisions Reconsidered
 

@@ -15,7 +15,7 @@ function getParser(): FeedParser {
     parser = new Parser({
       timeout: 10000,
       headers: {
-        "User-Agent": "Frontpage/1.0 (RSS Feed Reader)",
+        "User-Agent": "Curio/1.0 (RSS Feed Reader)",
         Accept: "application/rss+xml, application/xml, text/xml, */*",
       },
       customFields: {
@@ -106,7 +106,7 @@ export async function fetchFeed(url: string): Promise<FetchResult> {
   try {
     const res = await fetch(url, {
       headers: {
-        "User-Agent": "Frontpage/1.0 (RSS Feed Reader)",
+        "User-Agent": "Curio/1.0 (RSS Feed Reader)",
         Accept: "text/html, */*",
       },
       signal: AbortSignal.timeout(10000),

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Plus } from "lucide-react";
+import { Compass, Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddFeedDialog } from "@/components/features/feed/AddFeedDialog";
 
@@ -33,14 +33,9 @@ export function TopNav() {
           <Link href="/feed" className="flex items-center gap-2">
             {/* Exact Brand Mark from preview */}
             <div className="w-6 h-6 bg-[#2563EB] rounded-md flex items-center justify-center">
-              <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
-                <div className="bg-white rounded-[1px]" />
-                <div className="bg-white/60 rounded-[1px]" />
-                <div className="bg-white/80 rounded-[1px]" />
-                <div className="bg-white rounded-[1px]" />
-              </div>
+              <Compass className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[15px] font-extrabold text-[#1A1D21] tracking-tight">Frontpage</span>
+            <span className="text-[15px] font-extrabold text-[#1A1D21] tracking-tight">Curio</span>
           </Link>
 
           <nav className="hidden sm:flex gap-1 items-center text-xs font-semibold">

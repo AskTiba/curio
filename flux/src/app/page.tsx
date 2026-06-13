@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Compass } from "lucide-react";
 import { GuestSignInButton } from "@/components/features/auth/GuestSignInButton";
 
 export default function LandingPage() {
@@ -6,15 +7,10 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-bg-primary">
       <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-accent rounded-md flex items-center justify-center">
-            <div className="grid grid-cols-2 gap-0.5 w-3 h-3">
-              <div className="bg-white rounded-[1px]" />
-              <div className="bg-white/60 rounded-[1px]" />
-              <div className="bg-white/80 rounded-[1px]" />
-              <div className="bg-white rounded-[1px]" />
-            </div>
+          <div className="w-5 h-5 bg-text-primary rounded flex items-center justify-center">
+            <Compass className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="text-[15px] font-extrabold text-text-primary tracking-tight">Frontpage</span>
+          <span className="text-[15px] font-extrabold text-text-primary tracking-tight">Curio</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -35,8 +31,8 @@ export default function LandingPage() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-20">
         <div className="max-w-2xl text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-text-primary leading-tight mb-4">
-            Your personalized front page for tech content
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-text-primary tracking-tight max-w-2xl leading-[1.1] mb-4">
+            Read what matters to you with <span className="text-accent">Curio</span>.
           </h1>
           <p className="text-lg text-text-secondary mb-8 max-w-lg mx-auto">
             Pull RSS and Atom feeds from dev blogs, newsletters, and publications into one clean, calm reading dashboard.

@@ -1,4 +1,4 @@
-# Frontpage — Tibamwenda Anthony
+# Curio — Tibamwenda Anthony
 
 A customizable content aggregator that pulls RSS and Atom feeds into one well-designed reading dashboard. Built with a focus on typography, information density, and a calm, content-first user experience.
 
@@ -8,7 +8,7 @@ A customizable content aggregator that pulls RSS and Atom feeds into one well-de
 
 ## Overview
 
-Frontpage is a modern RSS reader designed to cut through the noise of the modern web. It provides a clean, fast, and organized interface for tracking blogs, news, and newsletters. Users can securely log in, subscribe to any valid RSS/Atom feed, automatically discover feeds from standard blog URLs, and categorize their reading list to suit their workflow.
+Curio is a modern RSS reader designed to cut through the noise of the modern web. It provides a clean, fast, and organized interface for tracking blogs, news, and newsletters. Users can securely log in, subscribe to any valid RSS/Atom feed, automatically discover feeds from standard blog URLs, and categorize their reading list to suit their workflow.
 
 ### Tech Stack
 
@@ -78,8 +78,8 @@ When dealing with data synchronization bugs between the client and server, the A
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/frontpage-feed-reader.git
-cd frontpage-feed-reader/flux
+git clone https://github.com/yourusername/curio-feed-reader.git
+cd curio-feed-reader/flux
 
 # Install dependencies
 npm install

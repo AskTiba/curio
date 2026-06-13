@@ -17,7 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Frontpage — Your Personalized Feed Reader",
+  title: "Curio — Your Personalized Feed Reader",
   description: "A customizable content aggregator that pulls RSS and Atom feeds into a single, well-designed reading dashboard.",
 };
 

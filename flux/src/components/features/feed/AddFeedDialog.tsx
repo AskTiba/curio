@@ -107,7 +107,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
         <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/70 border border-blue-100">
           <Rss className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <p className="text-xs text-text-secondary leading-relaxed">
-            Frontpage will automatically parse the feed and extract its title, description, and icon.
+            Curio will automatically parse the feed and extract its title, description, and icon.
           </p>
         </div>
 

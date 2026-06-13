@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -28,39 +27,47 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
     };
   }, [isOpen]);
 
+  // Close on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/40 z-50 transition-opacity" 
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50 transition-opacity cursor-pointer" 
         onClick={onClose}
       />
       
       {/* Modal Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-surface rounded-xl shadow-2xl w-full max-w-md pointer-events-auto flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md pointer-events-auto flex flex-col overflow-hidden border border-gray-100">
           {/* Header */}
-          <div className="flex items-start justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100">
             <div className="flex flex-col gap-1">
-              <h2 className="text-lg font-bold text-text-primary tracking-tight">{title}</h2>
+              <h2 className="text-base font-bold text-text-primary tracking-tight">{title}</h2>
               {description && (
-                <p className="text-xs text-text-secondary">{description}</p>
+                <p className="text-xs text-text-secondary leading-relaxed">{description}</p>
               )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-md -mr-2"
+            <button
               onClick={onClose}
+              className="h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer -mr-1 -mt-0.5"
+              aria-label="Close dialog"
             >
               <X className="w-4 h-4" />
-            </Button>
+            </button>
           </div>
           
           {/* Body */}
-          <div className="p-6 flex flex-col gap-4">
+          <div className="px-6 py-5 flex flex-col gap-4">
             {children}
           </div>
         </div>

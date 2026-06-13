@@ -81,7 +81,7 @@ export function TopNav() {
           </div>
 
           <button 
-            className="p-1.5 hover:bg-bg-tertiary border border-blue-500 rounded-md transition-colors"
+            className="p-1.5 hover:bg-bg-tertiary border border-blue-500 rounded-md transition-colors cursor-pointer"
             onClick={() => setIsAddFeedOpen(true)}
             aria-label="Add new feed"
           >

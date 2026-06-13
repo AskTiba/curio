@@ -3,20 +3,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-radius-md text-text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.97] cursor-pointer select-none",
   {
     variants: {
       variant: {
-        primary: "bg-accent text-white hover:bg-accent-hover shadow-sm",
-        secondary: "bg-bg-tertiary text-text-primary hover:bg-border border border-border-subtle",
-        outline: "border border-border bg-surface text-text-primary hover:bg-bg-secondary hover:border-text-tertiary",
-        ghost: "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary",
-        destructive: "bg-error text-white hover:opacity-90 shadow-sm",
+        primary:
+          "bg-gradient-to-b from-[#2563EB] to-[#1d4ed8] text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] hover:from-[#1d4ed8] hover:to-[#1e40af] hover:shadow-[0_2px_6px_rgba(37,99,235,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]",
+        secondary:
+          "bg-white text-text-primary shadow-sm border border-gray-200 hover:bg-gray-50 hover:border-gray-300",
+        outline:
+          "border border-gray-200 bg-transparent text-text-primary hover:bg-gray-50 hover:border-gray-300",
+        ghost:
+          "text-text-secondary hover:bg-gray-100 hover:text-text-primary",
+        destructive:
+          "bg-gradient-to-b from-[#ef4444] to-[#dc2626] text-white shadow-sm hover:from-[#dc2626] hover:to-[#b91c1c] hover:shadow-[0_2px_6px_rgba(239,68,68,0.3)]",
       },
       size: {
-        sm: "h-8 px-spacing-3 text-text-xs",
-        md: "h-10 px-spacing-6 py-spacing-2",
-        lg: "h-12 px-spacing-8 text-text-base",
+        sm: "h-8 px-3 text-xs",
+        md: "h-9 px-4 text-sm",
+        lg: "h-11 px-6 text-base",
         icon: "h-9 w-9 p-0",
       },
     },
@@ -47,9 +52,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="flex items-center gap-spacing-2">
-            <div className="w-4 h-4 border-2 border-current/20 border-t-current rounded-full animate-spin" />
-            {children}
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+            <span>{children}</span>
           </div>
         ) : (
           children

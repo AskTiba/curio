@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GuestSignInButton } from "@/components/features/auth/GuestSignInButton";
 
 export default function LandingPage() {
   return (
@@ -44,16 +45,11 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/sign-up"
-              className="bg-accent text-white px-6 py-2.5 rounded-md font-semibold hover:bg-accent-hover transition-colors text-sm"
+              className="bg-accent text-white px-6 py-2.5 rounded-md font-semibold hover:bg-accent-hover transition-colors text-sm cursor-pointer"
             >
               Create Account
             </Link>
-            <Link
-              href="/feed"
-              className="bg-bg-tertiary text-text-primary px-6 py-2.5 rounded-md font-semibold hover:bg-border transition-colors text-sm border border-border-subtle"
-            >
-              Try as Guest
-            </Link>
+            <GuestSignInButton />
           </div>
         </div>
 

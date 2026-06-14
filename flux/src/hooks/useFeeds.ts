@@ -22,6 +22,7 @@ export function useFeedItems(limit = 50) {
   return useQuery({
     queryKey: [...FEED_ITEMS_QUERY_KEY, limit],
     queryFn: () => getFeedItems(limit),
+    refetchInterval: 120_000,
   });
 }
 

@@ -7,8 +7,10 @@ import {
   ChevronDown,
   RotateCcw,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useFeedItems } from "@/hooks/useFeeds";
+import { useRefreshFeeds } from "@/hooks/useRefreshFeeds";
 
 /**
  * Feed Header from preview.jpg
@@ -19,6 +21,7 @@ import { useFeedItems } from "@/hooks/useFeeds";
 export function FeedHeader() {
   const { data: items = [] } = useFeedItems();
   const unreadCount = items.filter(i => !i.isRead).length;
+  const { mutate: refreshFeeds, isPending } = useRefreshFeeds();
 
   return (
     <div className="flex flex-col sm:flex-row text-sm sm:items-center justify-between px-4 sm:px-8 py-3 sm:py-4 gap-3 sm:gap-0 border-b border-border bg-surface sticky top-0 z-40">
@@ -47,9 +50,9 @@ export function FeedHeader() {
           Newest
         </Button>
 
-        <Button variant="secondary" size="sm" className="gap-2 px-3">
-          <RotateCcw className="w-4 h-4 text-text-tertiary" />
-          Refresh
+        <Button variant="secondary" size="sm" className="gap-2 px-3" onClick={() => refreshFeeds(undefined)} disabled={isPending}>
+          <RotateCcw className={cn("w-4 h-4 text-text-tertiary", isPending && "animate-spin")} />
+          {isPending ? "Refreshing..." : "Refresh"}
         </Button>
 
         <Button variant="secondary" size="sm" className="px-3">

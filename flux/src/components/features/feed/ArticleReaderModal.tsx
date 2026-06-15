@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { X, ExternalLink, Calendar, User, Loader2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { X, ExternalLink, Calendar, User, Loader2, RefreshCw } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import { format } from "date-fns";
 import { getFullArticleContent } from "@/actions/articles";
@@ -25,6 +25,9 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
   const [sanitizedHtml, setSanitizedHtml] = useState("");
   const [isFetching, setIsFetching] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const fetchingRef = useRef(false);
+
+  const contentIsSummary = article ? article.content.length <= 500 : false;
 
   useEffect(() => {
     if (article?.content) {
@@ -32,6 +35,8 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
         FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
         FORBID_ATTR: ['style', 'class', 'id']
       }));
+    } else if (article) {
+      setSanitizedHtml("");
     }
   }, [article]);
 
@@ -39,39 +44,37 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
     if (!isOpen || !article) {
       setIsFetching(false);
       setFetchError(false);
+      fetchingRef.current = false;
     }
   }, [isOpen, article]);
 
-  const tryFetchFull = useCallback(async () => {
-    if (!article || !article.url || !article.id) return;
-    if (article.content.length > 500) return;
-    if (isFetching) return;
+  useEffect(() => {
+    if (!isOpen || !article) return;
+    if (!article.url || !article.id) return;
+    if (!contentIsSummary) return;
+    if (fetchingRef.current) return;
 
+    fetchingRef.current = true;
     setIsFetching(true);
     setFetchError(false);
 
-    try {
-      const result = await getFullArticleContent(article.id, article.url);
-      if (result.fetched && result.content) {
-        setSanitizedHtml(DOMPurify.sanitize(result.content, {
-          FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
-          FORBID_ATTR: ['style', 'class', 'id']
-        }));
-      } else {
-        setFetchError(true);
-      }
-    } catch {
-      setFetchError(true);
-    } finally {
-      setIsFetching(false);
-    }
-  }, [article, isFetching]);
-
-  useEffect(() => {
-    if (isOpen && article) {
-      tryFetchFull();
-    }
-  }, [isOpen, article, tryFetchFull]);
+    getFullArticleContent(article.id, article.url)
+      .then((result) => {
+        if (result.fetched && result.content) {
+          setSanitizedHtml(DOMPurify.sanitize(result.content, {
+            FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
+            FORBID_ATTR: ['style', 'class', 'id']
+          }));
+        } else {
+          setFetchError(true);
+        }
+      })
+      .catch(() => setFetchError(true))
+      .finally(() => {
+        setIsFetching(false);
+        fetchingRef.current = false;
+      });
+  }, [isOpen, article, contentIsSummary]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -98,7 +101,7 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
         <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-border z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 text-sm font-semibold text-text-secondary">
             <span className="text-accent">{article.source}</span>
-            {article.url && (
+            {article.url && !isFetching && (
               <a 
                 href={article.url} 
                 target="_blank" 
@@ -107,6 +110,12 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
               >
                 View Original <ExternalLink className="w-3.5 h-3.5" />
               </a>
+            )}
+            {isFetching && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-text-tertiary font-medium">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Loading full article...
+              </span>
             )}
           </div>
           <button 
@@ -150,21 +159,28 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
             </div>
           </header>
 
-          {isFetching ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="w-6 h-6 text-accent animate-spin" />
-              <p className="text-sm text-text-tertiary font-medium">Fetching full article...</p>
+          <div 
+            className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
+              prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
+              prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
+              prose-img:rounded-xl prose-img:shadow-md
+              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
+              prose-p:mb-6 prose-li:mb-2"
+            dangerouslySetInnerHTML={{ __html: sanitizedHtml || (fetchError ? "Could not fetch full article. Try viewing the original." : "This feed does not provide full content.") }}
+          />
+
+          {contentIsSummary && !sanitizedHtml && (
+            <div className="mt-8 text-center">
+              <a
+                href={article.url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover font-semibold"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Read full article on {new URL(article.url || "").hostname}
+              </a>
             </div>
-          ) : (
-            <div 
-              className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
-                prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
-                prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
-                prose-img:rounded-xl prose-img:shadow-md
-                prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
-                prose-p:mb-6 prose-li:mb-2"
-              dangerouslySetInnerHTML={{ __html: sanitizedHtml || (fetchError && article.content ? "Content could not be parsed." : fetchError ? "Could not fetch full article. Try viewing the original." : "This feed does not provide full content.") }}
-            />
           )}
         </article>
       </div>

@@ -2,10 +2,21 @@
 
 import { db } from "@/db";
 import { feeds, userFeeds, feedItems, userInteractions, categories } from "@/db/schema";
-import { eq, and, desc, inArray, sql } from "drizzle-orm";
+import { eq, and, or, ilike, lt, gt, desc, asc, inArray, sql } from "drizzle-orm";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+
+export type FeedQueryParams = {
+  limit?: number;
+  cursor?: string;
+  search?: string;
+  feedId?: string;
+  categoryId?: string;
+  isRead?: boolean;
+  isBookmarked?: boolean;
+  sort?: "newest" | "oldest";
+};
 
 /**
  * Gets the current authenticated user's ID
@@ -50,26 +61,92 @@ export async function getUserFeeds() {
   }
 }
 
+export type FeedItemResult = {
+  id: string;
+  feedId: string;
+  guid: string | null;
+  title: string;
+  excerpt: string | null;
+  content: string | null;
+  author: string | null;
+  url: string;
+  thumbnailUrl: string | null;
+  publishedAt: Date | null;
+  isRead: boolean;
+  isBookmarked: boolean;
+  feedTitle: string | null;
+  feedIcon: string | null;
+  categoryName: string | null;
+};
+
+export type GetFeedItemsResult = {
+  items: FeedItemResult[];
+  nextCursor: string | null;
+};
+
 /**
- * Fetches all feed items across all the user's subscribed feeds.
- * Returns an empty array when not authenticated or on DB errors
- * so the UI renders the empty state instead of an error screen.
+ * Fetches feed items across all the user's subscribed feeds
+ * with optional search, filter, sort, and cursor-based pagination.
  */
-export async function getFeedItems(limit = 50) {
+export async function getFeedItems(params: FeedQueryParams = {}): Promise<GetFeedItemsResult> {
+  const { limit = 30, cursor, search, feedId, categoryId, isRead, isBookmarked, sort = "newest" } = params;
+
   try {
     const userId = await getUserId();
-    
-    // First get the user's feed IDs
+
     const userFeedRecords = await db
       .select({ feedId: userFeeds.feedId })
       .from(userFeeds)
       .where(eq(userFeeds.userId, userId));
-      
-    if (userFeedRecords.length === 0) return [];
-    
+
+    if (userFeedRecords.length === 0) return { items: [], nextCursor: null };
+
     const feedIds = userFeedRecords.map(r => r.feedId);
-    
-    // Fetch items for those feeds, including user interaction state (read/bookmarked)
+
+    const conditions = [
+      inArray(feedItems.feedId, feedIds),
+    ];
+
+    if (feedId) {
+      conditions.push(eq(feedItems.feedId, feedId));
+    }
+
+    if (categoryId) {
+      conditions.push(eq(userFeeds.categoryId, categoryId));
+    }
+
+    if (search) {
+      const pattern = `%${search}%`;
+      conditions.push(
+        sql`(${ilike(feedItems.title, pattern)} OR ${ilike(feedItems.excerpt, pattern)} OR ${ilike(feedItems.author, pattern)})`
+      );
+    }
+
+    if (isRead === true) {
+      conditions.push(sql`COALESCE(${userInteractions.isRead}, false) = true`);
+    } else if (isRead === false) {
+      conditions.push(sql`COALESCE(${userInteractions.isRead}, false) = false`);
+    }
+
+    if (isBookmarked === true) {
+      conditions.push(sql`COALESCE(${userInteractions.isBookmarked}, false) = true`);
+    } else if (isBookmarked === false) {
+      conditions.push(sql`COALESCE(${userInteractions.isBookmarked}, false) = false`);
+    }
+
+    if (cursor) {
+      const cursorDate = new Date(cursor);
+      if (sort === "oldest") {
+        conditions.push(gt(feedItems.publishedAt, cursorDate));
+      } else {
+        conditions.push(lt(feedItems.publishedAt, cursorDate));
+      }
+    }
+
+    const orderByClause = sort === "oldest"
+      ? sql`${feedItems.publishedAt} ASC NULLS LAST`
+      : sql`${feedItems.publishedAt} DESC NULLS LAST`;
+
     const items = await db
       .select({
         id: feedItems.id,
@@ -93,20 +170,27 @@ export async function getFeedItems(limit = 50) {
       .innerJoin(userFeeds, and(eq(userFeeds.feedId, feeds.id), eq(userFeeds.userId, userId)))
       .leftJoin(categories, eq(userFeeds.categoryId, categories.id))
       .leftJoin(
-        userInteractions, 
+        userInteractions,
         and(
           eq(userInteractions.itemId, feedItems.id),
           eq(userInteractions.userId, userId)
         )
       )
-      .where(inArray(feedItems.feedId, feedIds))
-      .orderBy(desc(feedItems.publishedAt))
-      .limit(limit);
-      
-    return items;
+      .where(and(...conditions))
+      .orderBy(orderByClause)
+      .limit(limit + 1);
+
+    const hasMore = items.length > limit;
+    const pageItems = hasMore ? items.slice(0, limit) : items;
+    const lastItem = pageItems[pageItems.length - 1];
+    const nextCursor = hasMore && lastItem?.publishedAt
+      ? lastItem.publishedAt.toISOString()
+      : null;
+
+    return { items: pageItems, nextCursor };
   } catch (error) {
     console.error("[getFeedItems] Failed:", error);
-    return [];
+    return { items: [], nextCursor: null };
   }
 }
 

@@ -17,15 +17,10 @@ interface FeedItemProps {
   categoryVariant?: VariantProps<typeof badgeVariants>["variant"];
   isRead?: boolean;
   isBookmarked?: boolean;
+  viewMode?: "list" | "compact" | "grid";
   onOpenArticle?: () => void;
 }
 
-/**
- * Feed Item from preview.jpg
- * - Grid-based layout for precision
- * - Gutter for unread dot at the absolute start
- * - Metadata, Title, and Excerpt in the primary column
- */
 export function FeedItem({
   id,
   source,
@@ -37,6 +32,7 @@ export function FeedItem({
   categoryVariant,
   isRead,
   isBookmarked,
+  viewMode = "list",
   onOpenArticle,
 }: FeedItemProps) {
   const { mutate: toggleRead } = useToggleRead();
@@ -48,6 +44,76 @@ export function FeedItem({
     }
     onOpenArticle?.();
   };
+
+  if (viewMode === "compact") {
+    return (
+      <article
+        className={cn(
+          "flex items-center gap-2 px-4 sm:px-7 py-2 border-b border-border hover:bg-bg-secondary/50 transition-colors cursor-pointer",
+          isRead && "opacity-60"
+        )}
+        onClick={handleClick}
+      >
+        {!isRead && (
+          <div className="w-1.5 h-1.5 shrink-0 bg-accent rounded-full shadow-[0_0_0_2px_rgba(37,99,235,0.1)]" />
+        )}
+        {isRead && <div className="w-1.5 h-1.5 shrink-0" />}
+        <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white shrink-0", sourceColor, isRead && "grayscale opacity-80")}>
+          {source.charAt(0)}
+        </div>
+        <span className="text-text-secondary text-xs font-medium truncate max-w-[120px] shrink-0">{source}</span>
+        <span className="text-text-primary text-sm truncate font-medium">{title}</span>
+        <span className="text-text-tertiary text-xs shrink-0 ml-auto">{timestamp}</span>
+      </article>
+    );
+  }
+
+  if (viewMode === "grid") {
+    return (
+      <article
+        className={cn(
+          "group flex flex-col border border-border rounded-lg p-4 hover:shadow-md hover:border-accent/30 transition-all cursor-pointer bg-surface",
+          isRead && "opacity-70"
+        )}
+        onClick={handleClick}
+      >
+        <div className="flex items-center gap-2 text-xs font-medium mb-2">
+          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor, isRead && "grayscale opacity-80")}>
+            {source.charAt(0)}
+          </div>
+          <span className="text-text-secondary truncate">{source}</span>
+          <span className="text-text-tertiary">•</span>
+          <span className="text-text-tertiary shrink-0">{timestamp}</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBookmark({ itemId: id, isBookmarked: !isBookmarked });
+            }}
+            className="ml-auto p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-accent/10 transition-all cursor-pointer"
+            title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+          >
+            <Bookmark
+              className={cn(
+                "w-3 h-3",
+                isBookmarked
+                  ? "text-accent fill-accent opacity-100"
+                  : "text-text-tertiary"
+              )}
+            />
+          </button>
+        </div>
+        <h2 className={cn("text-sm leading-tight mb-1.5 group-hover:text-accent transition-colors line-clamp-2", isRead ? "font-semibold text-text-secondary" : "font-bold text-text-primary")}>
+          {title}
+        </h2>
+        <p className="text-text-secondary text-xs leading-normal line-clamp-3 flex-1">
+          {excerpt}
+        </p>
+        <div className="mt-2">
+          <Badge variant={categoryVariant}>{category}</Badge>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article 

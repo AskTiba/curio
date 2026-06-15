@@ -1,14 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { useFeedItems } from "@/hooks/useFeeds";
+import { useFeedItemsInfinite } from "@/hooks/useFeeds";
 import { FeedItem } from "@/components/features/feed/FeedItem";
 import { ArticleReaderModal } from "@/components/features/feed/ArticleReaderModal";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import { ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
-import { useMarkAllAsRead } from "@/hooks/useInteractions";
-import { CheckCheck } from "lucide-react";
+interface FeedListProps {
+  search?: string;
+  sort?: "newest" | "oldest";
+  isRead?: boolean;
+  isBookmarked?: boolean;
+  categoryId?: string;
+  feedId?: string;
+  viewMode?: "list" | "compact" | "grid";
+}
 
 interface SelectedArticle {
   title: string;
@@ -19,10 +29,19 @@ interface SelectedArticle {
   source: string;
 }
 
-export function FeedList() {
-  const { data: items, isLoading, isError } = useFeedItems();
-  const { mutate: markAllAsRead, isPending: isMarkingRead } = useMarkAllAsRead();
+export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedId, viewMode = "list" }: FeedListProps) {
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useFeedItemsInfinite({ search, sort, isRead, isBookmarked, categoryId, feedId, limit: 30 });
+
   const [selectedArticle, setSelectedArticle] = useState<SelectedArticle | null>(null);
+
+  const items = data?.pages.flatMap((page) => page.items) ?? [];
 
   if (isLoading) {
     return (
@@ -46,65 +65,83 @@ export function FeedList() {
     );
   }
 
-  if (!items || items.length === 0) {
+  if (items.length === 0) {
+    const hasFilters = search || isRead !== undefined || isBookmarked || categoryId || feedId;
     return (
-      <div className="p-12 text-center text-text-tertiary">
-        <p className="font-semibold mb-2">No articles yet.</p>
-        <p className="text-sm">Add some feeds to get started.</p>
+      <div className="p-12 text-center">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-bg-tertiary flex items-center justify-center">
+          <ChevronDown className="w-5 h-5 text-text-tertiary" />
+        </div>
+        <p className="font-semibold text-text-primary mb-1">
+          {hasFilters ? "No articles match your filters" : "No articles yet"}
+        </p>
+        <p className="text-sm text-text-tertiary">
+          {hasFilters
+            ? "Try adjusting your search or filter criteria."
+            : "Add some feeds to get started."}
+        </p>
       </div>
     );
   }
 
-  const unreadCount = items.filter(i => !i.isRead).length;
-
   return (
     <>
-      <div className="flex flex-col">
-        <div className="px-7 pt-4 pb-2 flex items-center justify-between">
-          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-[0.2em]">
-            Latest
-          </h3>
-          {unreadCount > 0 && (
-            <button 
-              onClick={() => markAllAsRead()}
-              disabled={isMarkingRead}
-              className="flex items-center gap-1.5 text-[11px] font-semibold text-text-secondary hover:text-text-primary transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              <CheckCheck className="w-3.5 h-3.5" />
-              Mark all as read
-            </button>
-          )}
-        </div>
-        
+      <div className="px-7 pt-4 pb-2">
+        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-[0.2em]">
+          {sort === "oldest" ? "Oldest" : "Latest"}
+        </h3>
+      </div>
+
+      <div className={cn(viewMode === "grid" && "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4 sm:px-7 pt-2 pb-4")}>
         {items.map((item) => {
           const publishedDate = item.publishedAt ? new Date(item.publishedAt) : new Date();
-          const timestamp = formatDistanceToNow(publishedDate, { addSuffix: true });
-          
           return (
             <FeedItem
-              key={item.id}
+              key={`${item.id}-${item.isRead}-${item.isBookmarked}`}
               id={item.id}
               source={item.feedTitle || "Unknown Source"}
-              sourceColor="bg-blue-500"
-              timestamp={timestamp}
+              timestamp={formatDistanceToNow(publishedDate, { addSuffix: true })}
               title={item.title}
-              excerpt={item.excerpt || item.content?.replace(/<[^>]*>?/gm, '').substring(0, 150) + "..." || ""}
+              excerpt={item.excerpt || item.content?.replace(/<[^>]*>?/gm, "").substring(0, 150) + "..." || ""}
               category={item.categoryName || "Uncategorized"}
-              categoryVariant="default"
               isRead={item.isRead}
               isBookmarked={item.isBookmarked}
-              onOpenArticle={() => setSelectedArticle({
-                title: item.title,
-                content: item.content || item.excerpt || "",
-                url: item.url,
-                author: item.author,
-                publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
-                source: item.feedTitle || "Unknown Source",
-              })}
+              viewMode={viewMode}
+              onOpenArticle={() =>
+                setSelectedArticle({
+                  title: item.title,
+                  content: item.content || item.excerpt || "",
+                  url: item.url,
+                  author: item.author,
+                  publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+                  source: item.feedTitle || "Unknown Source",
+                })
+              }
             />
           );
         })}
       </div>
+
+      {hasNextPage && (
+        <div className="px-7 pt-4 pb-8 flex justify-center">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+            onClick={() => fetchNextPage()}
+            isLoading={isFetchingNextPage}
+          >
+            <ChevronDown className="w-4 h-4" />
+            Load older articles
+          </Button>
+        </div>
+      )}
+
+      {!hasNextPage && items.length > 30 && (
+        <div className="px-7 pt-4 pb-8 text-center">
+          <p className="text-xs text-text-tertiary font-medium">All articles loaded</p>
+        </div>
+      )}
 
       <ArticleReaderModal
         isOpen={!!selectedArticle}

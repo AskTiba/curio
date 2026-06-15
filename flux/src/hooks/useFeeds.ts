@@ -1,12 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getUserFeeds, getFeedItems, addFeed, updateFeedCategory } from "@/actions/feeds";
+import type { FeedQueryParams } from "@/actions/feeds";
 
 export const FEEDS_QUERY_KEY = ["feeds"];
 export const FEED_ITEMS_QUERY_KEY = ["feedItems"];
 
-/**
- * Hook to fetch all user subscriptions
- */
 export function useFeeds() {
   return useQuery({
     queryKey: FEEDS_QUERY_KEY,
@@ -14,15 +12,20 @@ export function useFeeds() {
   });
 }
 
-/**
- * Hook to fetch feed items (articles)
- * @param limit Optional limit for the number of items
- */
-export function useFeedItems(limit = 50) {
+export function useFeedItems(params?: FeedQueryParams) {
   return useQuery({
-    queryKey: [...FEED_ITEMS_QUERY_KEY, limit],
-    queryFn: () => getFeedItems(limit),
+    queryKey: [...FEED_ITEMS_QUERY_KEY, params],
+    queryFn: () => getFeedItems(params).then(r => r.items),
     refetchInterval: 120_000,
+  });
+}
+
+export function useFeedItemsInfinite(params?: Omit<FeedQueryParams, "cursor">) {
+  return useInfiniteQuery({
+    queryKey: [...FEED_ITEMS_QUERY_KEY, "infinite", params],
+    queryFn: ({ pageParam }) => getFeedItems({ ...params, cursor: pageParam }).then(r => r),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 }
 

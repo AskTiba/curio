@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { FileText, Bookmark, CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddCategoryDialog } from "@/components/features/categories/AddCategoryDialog";

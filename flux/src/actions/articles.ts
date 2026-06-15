@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { feedItems } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 
@@ -73,20 +73,20 @@ export async function getFullArticleContent(
   articleId: string,
   url: string
 ): Promise<{ content: string; fetched: boolean; invalid?: boolean }> {
-  const existing = await db
-    .select({ content: feedItems.content })
-    .from(feedItems)
-    .where(eq(feedItems.id, articleId))
-    .limit(1);
-
-  const stored = existing[0]?.content ?? "";
-  const storedIsGood = stored.length > SUMMARY_THRESHOLD && isValidContent(stored);
-
-  if (storedIsGood) {
-    return { content: stored, fetched: false };
-  }
-
   try {
+    const existing = await db
+      .select({ content: feedItems.content })
+      .from(feedItems)
+      .where(sql`${feedItems.id}::text = ${articleId}`)
+      .limit(1);
+
+    const stored = existing[0]?.content ?? "";
+    const storedIsGood = stored.length > SUMMARY_THRESHOLD && isValidContent(stored);
+
+    if (storedIsGood) {
+      return { content: stored, fetched: false };
+    }
+
     const { html, ok } = await fetchWithTimeout(url, 8000);
     if (!ok) {
       return { content: "", fetched: false, invalid: !storedIsGood && stored.length > SUMMARY_THRESHOLD };
@@ -98,12 +98,13 @@ export async function getFullArticleContent(
       await db
         .update(feedItems)
         .set({ content: extracted })
-        .where(eq(feedItems.id, articleId));
+        .where(sql`${feedItems.id}::text = ${articleId}`);
       return { content: extracted, fetched: true };
     }
 
     return { content: "", fetched: false, invalid: !storedIsGood && stored.length > SUMMARY_THRESHOLD };
-  } catch {
-    return { content: "", fetched: false, invalid: !storedIsGood && stored.length > SUMMARY_THRESHOLD };
+  } catch (error) {
+    console.error("[getFullArticleContent] Failed:", error);
+    return { content: "", fetched: false, invalid: false };
   }
 }

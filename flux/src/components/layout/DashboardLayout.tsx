@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
 
@@ -14,7 +15,9 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex flex-col min-h-screen bg-bg-primary text-text-primary">
-      <TopNav />
+      <Suspense fallback={null}>
+        <TopNav />
+      </Suspense>
       
       <div className="flex flex-1">
         {/* Sidebar remains sticky/fixed-height via its internal implementation */}

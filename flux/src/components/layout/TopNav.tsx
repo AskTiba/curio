@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Compass, Search, Plus } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Compass, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddFeedDialog } from "@/components/features/feed/AddFeedDialog";
+import { SearchBar } from "@/components/features/feed/SearchBar";
 
 /** Top-level nav links with their route paths */
 const NAV_LINKS = [
@@ -23,7 +24,30 @@ const NAV_LINKS = [
  */
 export function TopNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isAddFeedOpen, setIsAddFeedOpen] = useState(false);
+  const [search, setSearch] = useState(pathname === "/feed" ? searchParams.get("search") ?? "" : "");
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    if (pathname === "/feed") {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set("search", value);
+      } else {
+        params.delete("search");
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    } else {
+      router.push(value ? `/feed?search=${encodeURIComponent(value)}` : "/feed");
+    }
+  }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    const urlSearch = pathname === "/feed" ? searchParams.get("search") ?? "" : "";
+    setSearch(urlSearch);
+  }, [pathname, searchParams]);
 
   return (
     <>
@@ -61,18 +85,8 @@ export function TopNav() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3">
-          <div className="relative group">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary">
-              <Search className="w-4 h-4" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search articles..."
-              className="w-36 md:w-48 lg:w-64 px-8 py-1.5 placeholder:text-text-tertiary bg-[#F3F4F6] border border-transparent rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-border transition-all outline-none"
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-white border border-border rounded text-[10px] text-text-tertiary font-mono">
-              /
-            </div>
+          <div className="w-36 md:w-48 lg:w-64">
+            <SearchBar value={search} onChange={handleSearchChange} />
           </div>
 
           <button 

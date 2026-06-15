@@ -3,8 +3,6 @@
 import { db } from "@/db";
 import { feedItems } from "@/db/schema";
 import { sql } from "drizzle-orm";
-import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
 
 const SUMMARY_THRESHOLD = 500;
 
@@ -16,16 +14,6 @@ const BAD_CONTENT_PATTERNS = [
 
 function hasBadContent(text: string): boolean {
   return BAD_CONTENT_PATTERNS.some((p) => p.test(text));
-}
-
-function isLinkDense(html: string): boolean {
-  const dom = new JSDOM(html);
-  const doc = dom.window.document;
-  const allText = doc.body.textContent || "";
-  if (allText.length < 100) return true;
-  const links = [...doc.body.querySelectorAll("a")];
-  const linkText = links.reduce((s, a) => s + (a.textContent || ""), "");
-  return linkText.length / allText.length > 0.5;
 }
 
 function hasCoherentContent(text: string): boolean {
@@ -45,26 +33,26 @@ async function fetchWithTimeout(url: string, ms: number): Promise<{ html: string
   return { html: await res.text(), ok: true };
 }
 
-function extractViaReadability(html: string, url: string): string | null {
-  const dom = new JSDOM(html, { url });
-  const reader = new Readability(dom.window.document);
-  const article = reader.parse();
-  return article?.content?.trim() ?? null;
-}
-
-function extractViaArticleTag(html: string): string | null {
+function isLinkDense(html: string, JSDOM: typeof import("jsdom").JSDOM): boolean {
   const dom = new JSDOM(html);
-  const el = dom.window.document.querySelector("article");
-  return el && el.innerHTML.trim().length > SUMMARY_THRESHOLD ? el.innerHTML.trim() : null;
+  const doc = dom.window.document;
+  const allText = doc.body.textContent || "";
+  if (allText.length < 100) return true;
+  const links = [...doc.body.querySelectorAll("a")];
+  const linkText = links.reduce((s, a) => s + (a.textContent || ""), "");
+  return linkText.length / allText.length > 0.5;
 }
 
-function isValidContent(html: string): boolean {
+function isValidContent(
+  html: string,
+  JSDOM: typeof import("jsdom").JSDOM
+): boolean {
   if (html.length <= SUMMARY_THRESHOLD) return false;
   const dom = new JSDOM(html);
   const text = dom.window.document.body.textContent || "";
   if (!text.trim()) return false;
   if (hasBadContent(text)) return false;
-  if (isLinkDense(html)) return false;
+  if (isLinkDense(html, JSDOM)) return false;
   if (!hasCoherentContent(text)) return false;
   return true;
 }
@@ -74,6 +62,9 @@ export async function getFullArticleContent(
   url: string
 ): Promise<{ content: string; fetched: boolean; invalid?: boolean }> {
   try {
+    const { JSDOM } = await import("jsdom");
+    const { Readability } = await import("@mozilla/readability");
+
     const existing = await db
       .select({ content: feedItems.content })
       .from(feedItems)
@@ -81,7 +72,7 @@ export async function getFullArticleContent(
       .limit(1);
 
     const stored = existing[0]?.content ?? "";
-    const storedIsGood = stored.length > SUMMARY_THRESHOLD && isValidContent(stored);
+    const storedIsGood = stored.length > SUMMARY_THRESHOLD && isValidContent(stored, JSDOM);
 
     if (storedIsGood) {
       return { content: stored, fetched: false };
@@ -92,9 +83,28 @@ export async function getFullArticleContent(
       return { content: "", fetched: false, invalid: !storedIsGood && stored.length > SUMMARY_THRESHOLD };
     }
 
-    const extracted = extractViaReadability(html, url) ?? extractViaArticleTag(html);
+    const articleDom = new JSDOM(html, { url });
+    const reader = new Readability(articleDom.window.document);
+    const article = reader.parse();
+    const extracted = article?.content?.trim() ?? null;
 
-    if (extracted && isValidContent(extracted)) {
+    if (!extracted) {
+      const fallbackDom = new JSDOM(html);
+      const el = fallbackDom.window.document.querySelector("article");
+      const fallbackHtml = el && el.innerHTML.trim().length > SUMMARY_THRESHOLD ? el.innerHTML.trim() : null;
+      if (fallbackHtml) {
+        if (isValidContent(fallbackHtml, JSDOM)) {
+          await db
+            .update(feedItems)
+            .set({ content: fallbackHtml })
+            .where(sql`${feedItems.id}::text = ${articleId}`);
+          return { content: fallbackHtml, fetched: true };
+        }
+      }
+      return { content: "", fetched: false, invalid: !storedIsGood && stored.length > SUMMARY_THRESHOLD };
+    }
+
+    if (isValidContent(extracted, JSDOM)) {
       await db
         .update(feedItems)
         .set({ content: extracted })

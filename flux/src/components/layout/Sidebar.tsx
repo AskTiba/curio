@@ -84,30 +84,43 @@ interface SubNavItemProps {
   count: number;
   letter: string;
   color: string;
+  href?: string;
   onEdit?: () => void;
 }
 
-function SubNavItem({ label, count, letter, color, onEdit }: SubNavItemProps) {
+function SubNavItem({ label, count, letter, color, href, onEdit }: SubNavItemProps) {
+  const content = (
+    <>
+      <div
+        className={cn(
+          "size-3.5 rounded-sm flex items-center justify-center text-[8px] text-white shrink-0",
+          color
+        )}
+      >
+        {letter}
+      </div>
+      <span className="text-text-secondary group-hover:text-text-primary font-medium truncate">
+        {label}
+      </span>
+    </>
+  );
+
   return (
     <div className="flex items-center text-xs justify-between w-full py-1 pl-3 pr-2 rounded-md transition-all group hover:bg-bg-tertiary">
-      <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-        <div
-          className={cn(
-            "size-3.5 rounded-sm flex items-center justify-center text-[8px] text-white shrink-0",
-            color
-          )}
-        >
-          {letter}
+      {href ? (
+        <Link href={href} className="flex items-center gap-1.5 flex-1 min-w-0 pr-2 no-underline">
+          {content}
+        </Link>
+      ) : (
+        <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
+          {content}
         </div>
-        <span className="text-text-secondary group-hover:text-text-primary font-medium truncate">
-          {label}
-        </span>
-      </div>
+      )}
       <div className="flex items-center gap-1 shrink-0">
         <span className="text-text-tertiary group-hover:hidden">{count}</span>
         {onEdit && (
           <button 
-            onClick={onEdit}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
             className="hidden group-hover:flex items-center justify-center size-5 rounded hover:bg-bg-secondary text-text-tertiary hover:text-text-primary"
             title="Move feed"
           >
@@ -237,6 +250,7 @@ export function Sidebar() {
                             count={getFeedUnreadCount(feed.id)}
                             letter={(feed.title || "U")[0].toUpperCase()}
                             color={dotColor}
+                            href={`/feed?feed=${feed.id}`}
                             onEdit={() => setEditingFeed(feed)}
                           />
                         ))}
@@ -260,6 +274,7 @@ export function Sidebar() {
                         count={getFeedUnreadCount(feed.id)}
                         letter={(feed.title || "U")[0].toUpperCase()}
                         color="bg-gray-500"
+                        href={`/feed?feed=${feed.id}`}
                         onEdit={() => setEditingFeed(feed)}
                       />
                     ))}

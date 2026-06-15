@@ -73,6 +73,7 @@ export default function SavedPage() {
                       excerpt={item.excerpt || ""}
                       category={item.categoryName}
                       url={item.url}
+                      thumbnailUrl={item.thumbnailUrl}
                     />
                   ))}
                 </>
@@ -96,6 +97,7 @@ export default function SavedPage() {
                       excerpt={item.excerpt || ""}
                       category={item.categoryName}
                       url={item.url}
+                      thumbnailUrl={item.thumbnailUrl}
                     />
                   ))}
                 </>

@@ -27,6 +27,7 @@ interface SelectedArticle {
   author?: string | null;
   publishedAt?: Date | null;
   source: string;
+  thumbnailUrl?: string | null;
 }
 
 export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedId, viewMode = "list" }: FeedListProps) {
@@ -107,6 +108,7 @@ export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedI
               isRead={item.isRead}
               isBookmarked={item.isBookmarked}
               viewMode={viewMode}
+              thumbnailUrl={item.thumbnailUrl}
               onOpenArticle={() =>
                 setSelectedArticle({
                   title: item.title,
@@ -115,6 +117,7 @@ export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedI
                   author: item.author,
                   publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
                   source: item.feedTitle || "Unknown Source",
+                  thumbnailUrl: item.thumbnailUrl,
                 })
               }
             />

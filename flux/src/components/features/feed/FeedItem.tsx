@@ -18,6 +18,7 @@ interface FeedItemProps {
   isRead?: boolean;
   isBookmarked?: boolean;
   viewMode?: "list" | "compact" | "grid";
+  thumbnailUrl?: string | null;
   onOpenArticle?: () => void;
 }
 
@@ -33,6 +34,7 @@ export function FeedItem({
   isRead,
   isBookmarked,
   viewMode = "list",
+  thumbnailUrl,
   onOpenArticle,
 }: FeedItemProps) {
   const { mutate: toggleRead } = useToggleRead();
@@ -77,6 +79,17 @@ export function FeedItem({
         )}
         onClick={handleClick}
       >
+        {thumbnailUrl && (
+          <div className="relative -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-lg h-40 bg-bg-tertiary">
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs font-medium mb-2">
           <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor, isRead && "grayscale opacity-80")}>
             {source.charAt(0)}
@@ -148,31 +161,45 @@ export function FeedItem({
       </div>
 
       {/* Column 2: Content Container */}
-      <div className="flex flex-col gap-2">
-        {/* Source Meta Row (Aligned with dot) */}
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor, isRead && "grayscale opacity-80")}>
-            {source.charAt(0)}
+      <div className="flex gap-4">
+        <div className="flex flex-col gap-2 min-w-0 flex-1">
+          {/* Source Meta Row (Aligned with dot) */}
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white", sourceColor, isRead && "grayscale opacity-80")}>
+              {source.charAt(0)}
+            </div>
+            <span className="text-text-secondary">{source}</span>
+            <span className="text-text-tertiary">•</span>
+            <span className="text-text-tertiary">{timestamp}</span>
           </div>
-          <span className="text-text-secondary">{source}</span>
-          <span className="text-text-tertiary">•</span>
-          <span className="text-text-tertiary">{timestamp}</span>
+
+          {/* Title */}
+          <h2 className={cn("text-[15px] leading-tight group-hover:text-accent transition-colors", isRead ? "font-semibold text-text-secondary" : "font-bold text-text-primary")}>
+            {title}
+          </h2>
+
+          {/* Excerpt */}
+          <p className="text-text-secondary leading-normal line-clamp-2 max-w-3xl">
+            {excerpt}
+          </p>
+
+          {/* Category Badge */}
+          <div className="mt-1">
+            <Badge variant={categoryVariant}>{category}</Badge>
+          </div>
         </div>
 
-        {/* Title */}
-        <h2 className={cn("text-[15px] leading-tight group-hover:text-accent transition-colors", isRead ? "font-semibold text-text-secondary" : "font-bold text-text-primary")}>
-          {title}
-        </h2>
-
-        {/* Excerpt */}
-        <p className="text-text-secondary leading-normal line-clamp-2 max-w-3xl">
-          {excerpt}
-        </p>
-
-        {/* Category Badge */}
-        <div className="mt-1">
-          <Badge variant={categoryVariant}>{category}</Badge>
-        </div>
+        {thumbnailUrl && (
+          <div className="shrink-0 w-28 h-20 rounded-lg overflow-hidden bg-bg-tertiary">
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
       </div>
     </article>
   );

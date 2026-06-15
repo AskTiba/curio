@@ -12,7 +12,7 @@ interface RawFeedItem {
   creator?: string | null;
   "dc:creator"?: string | null;
   enclosure?: { url?: string } | null;
-  media?: { content?: { url?: string }[] } | null;
+  media?: { content?: { url?: string }[]; thumbnail?: { url?: string }[] } | null;
 }
 
 interface RawFeedOutput {
@@ -82,6 +82,7 @@ export function normalizeFeed(
     const thumbnailUrl =
       item.enclosure?.url ??
       item.media?.content?.[0]?.url ??
+      item.media?.thumbnail?.[0]?.url ??
       undefined;
 
     const publishedAt = normalizeDate(item.isoDate ?? item.pubDate);

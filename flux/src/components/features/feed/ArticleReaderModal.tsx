@@ -15,6 +15,7 @@ interface ArticleReaderModalProps {
     author?: string | null;
     publishedAt?: Date | null;
     source: string;
+    thumbnailUrl?: string | null;
   } | null;
 }
 
@@ -78,6 +79,16 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
 
         {/* Article Body */}
         <article className="max-w-2xl mx-auto px-6 py-12 md:py-16">
+          {article.thumbnailUrl && (
+            <div className="relative -mx-6 -mt-12 mb-8 overflow-hidden h-64 md:h-80 bg-bg-tertiary">
+              <img
+                src={article.thumbnailUrl}
+                alt=""
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            </div>
+          )}
           <header className="mb-12">
             <h1 className="text-3xl md:text-4xl font-extrabold text-text-primary leading-tight mb-6 tracking-tight">
               {article.title}

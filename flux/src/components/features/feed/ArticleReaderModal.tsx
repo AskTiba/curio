@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { X, ExternalLink, Calendar, User, Loader2, RefreshCw } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import { format } from "date-fns";
@@ -27,17 +27,13 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
   const [fetchError, setFetchError] = useState(false);
   const fetchingRef = useRef(false);
 
-  const contentIsSummary = article ? article.content.length <= 500 : false;
-
   useEffect(() => {
-    if (article?.content) {
-      setSanitizedHtml(DOMPurify.sanitize(article.content, {
-        FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
-        FORBID_ATTR: ['style', 'class', 'id']
-      }));
-    } else if (article) {
-      setSanitizedHtml("");
-    }
+    if (!article) return;
+    setSanitizedHtml(DOMPurify.sanitize(article.content, {
+      FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
+      FORBID_ATTR: ['style', 'class', 'id']
+    }));
+    setFetchError(false);
   }, [article]);
 
   useEffect(() => {
@@ -48,33 +44,38 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
     }
   }, [isOpen, article]);
 
-  useEffect(() => {
-    if (!isOpen || !article) return;
-    if (!article.url || !article.id) return;
-    if (!contentIsSummary) return;
+  const fetchFullArticle = useCallback(async (id: string, url: string) => {
     if (fetchingRef.current) return;
 
     fetchingRef.current = true;
     setIsFetching(true);
     setFetchError(false);
 
-    getFullArticleContent(article.id, article.url)
-      .then((result) => {
-        if (result.fetched && result.content) {
-          setSanitizedHtml(DOMPurify.sanitize(result.content, {
-            FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
-            FORBID_ATTR: ['style', 'class', 'id']
-          }));
-        } else {
-          setFetchError(true);
+    try {
+      const result = await getFullArticleContent(id, url);
+      if (result.fetched && result.content) {
+        setSanitizedHtml(DOMPurify.sanitize(result.content, {
+          FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
+          FORBID_ATTR: ['style', 'class', 'id']
+        }));
+      } else if (!result.content) {
+        if (result.invalid) {
+          setSanitizedHtml("");
         }
-      })
-      .catch(() => setFetchError(true))
-      .finally(() => {
-        setIsFetching(false);
-        fetchingRef.current = false;
-      });
-  }, [isOpen, article, contentIsSummary]);
+        setFetchError(true);
+      }
+    } catch {
+      setFetchError(true);
+    } finally {
+      setIsFetching(false);
+      fetchingRef.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !article?.url || !article?.id) return;
+    fetchFullArticle(article.id, article.url);
+  }, [isOpen, article?.id, article?.url, fetchFullArticle]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -91,6 +92,8 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
   }, [isOpen, onClose]);
 
   if (!isOpen || !article) return null;
+
+  const hostname = article.url ? new URL(article.url).hostname : "";
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm transition-all duration-300">
@@ -159,27 +162,50 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
             </div>
           </header>
 
-          <div 
-            className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
-              prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
-              prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-xl prose-img:shadow-md
-              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
-              prose-p:mb-6 prose-li:mb-2"
-            dangerouslySetInnerHTML={{ __html: sanitizedHtml || (fetchError ? "Could not fetch full article. Try viewing the original." : "This feed does not provide full content.") }}
-          />
+          {/* Full article content */}
+          {sanitizedHtml && (
+            <div 
+              className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
+                prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
+                prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
+                prose-img:rounded-xl prose-img:shadow-md
+                prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
+                prose-p:mb-6 prose-li:mb-2"
+              dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+            />
+          )}
 
-          {contentIsSummary && !sanitizedHtml && (
-            <div className="mt-8 text-center">
-              <a
-                href={article.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover font-semibold"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Read full article on {new URL(article.url || "").hostname}
-              </a>
+          {/* Fallback when no article content could be extracted */}
+          {!sanitizedHtml && (
+            <div className="text-center py-16">
+              <p className="text-text-tertiary mb-6">
+                {fetchError
+                  ? "This article requires JavaScript to display. Open it in your browser to read."
+                  : "This feed does not provide full article content."}
+              </p>
+              {article.url && (
+                <div className="flex items-center justify-center gap-4">
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover font-semibold"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    Read full article on {hostname}
+                  </a>
+                  {fetchError && (
+                    <button
+                      onClick={() => article.url && article.id && fetchFullArticle(article.id, article.url)}
+                      disabled={isFetching}
+                      className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary font-semibold disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                      Retry
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </article>

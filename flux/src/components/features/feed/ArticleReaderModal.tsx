@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X, ExternalLink, Calendar, User } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { X, ExternalLink, Calendar, User, Loader2 } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import { format } from "date-fns";
+import { getFullArticleContent } from "@/actions/articles";
 
 interface ArticleReaderModalProps {
   isOpen: boolean;
   onClose: () => void;
   article: {
+    id: string;
     title: string;
     content: string;
     url?: string | null;
@@ -21,17 +23,55 @@ interface ArticleReaderModalProps {
 
 export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderModalProps) {
   const [sanitizedHtml, setSanitizedHtml] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (article?.content) {
-      // Clean HTML from malicious scripts, and also strip typical ads/junk if possible.
-      // isomorphic-dompurify handles basic sanitation
       setSanitizedHtml(DOMPurify.sanitize(article.content, {
         FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
         FORBID_ATTR: ['style', 'class', 'id']
       }));
     }
   }, [article]);
+
+  useEffect(() => {
+    if (!isOpen || !article) {
+      setIsFetching(false);
+      setFetchError(false);
+    }
+  }, [isOpen, article]);
+
+  const tryFetchFull = useCallback(async () => {
+    if (!article || !article.url || !article.id) return;
+    if (article.content.length > 500) return;
+    if (isFetching) return;
+
+    setIsFetching(true);
+    setFetchError(false);
+
+    try {
+      const result = await getFullArticleContent(article.id, article.url);
+      if (result.fetched && result.content) {
+        setSanitizedHtml(DOMPurify.sanitize(result.content, {
+          FORBID_TAGS: ['style', 'script', 'iframe', 'object', 'embed'],
+          FORBID_ATTR: ['style', 'class', 'id']
+        }));
+      } else {
+        setFetchError(true);
+      }
+    } catch {
+      setFetchError(true);
+    } finally {
+      setIsFetching(false);
+    }
+  }, [article, isFetching]);
+
+  useEffect(() => {
+    if (isOpen && article) {
+      tryFetchFull();
+    }
+  }, [isOpen, article, tryFetchFull]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -110,15 +150,22 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
             </div>
           </header>
 
-          <div 
-            className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
-              prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
-              prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-xl prose-img:shadow-md
-              prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
-              prose-p:mb-6 prose-li:mb-2"
-            dangerouslySetInnerHTML={{ __html: sanitizedHtml || (article.content ? "Content could not be parsed." : "This feed does not provide full content.") }}
-          />
+          {isFetching ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <Loader2 className="w-6 h-6 text-accent animate-spin" />
+              <p className="text-sm text-text-tertiary font-medium">Fetching full article...</p>
+            </div>
+          ) : (
+            <div 
+              className="prose prose-blue prose-lg max-w-none text-text-primary leading-relaxed
+                prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
+                prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
+                prose-img:rounded-xl prose-img:shadow-md
+                prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
+                prose-p:mb-6 prose-li:mb-2"
+              dangerouslySetInnerHTML={{ __html: sanitizedHtml || (fetchError && article.content ? "Content could not be parsed." : fetchError ? "Could not fetch full article. Try viewing the original." : "This feed does not provide full content.") }}
+            />
+          )}
         </article>
       </div>
     </div>

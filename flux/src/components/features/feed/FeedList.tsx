@@ -21,6 +21,7 @@ interface FeedListProps {
 }
 
 interface SelectedArticle {
+  id: string;
   title: string;
   content: string;
   url?: string | null;
@@ -111,6 +112,7 @@ export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedI
               thumbnailUrl={item.thumbnailUrl}
               onOpenArticle={() =>
                 setSelectedArticle({
+                  id: item.id,
                   title: item.title,
                   content: item.content || item.excerpt || "",
                   url: item.url,

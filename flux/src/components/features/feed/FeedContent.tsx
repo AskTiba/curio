@@ -6,7 +6,7 @@ import { FeedHeader } from "./FeedHeader";
 import { FeedFilterBar } from "./FeedFilterBar";
 import type { ReadFilter } from "./FeedFilterBar";
 import { FeedList } from "./FeedList";
-import { useFeedItems } from "@/hooks/useFeeds";
+import { useFeedItems, useFeedItemCount } from "@/hooks/useFeeds";
 import { useMarkAllAsRead } from "@/hooks/useInteractions";
 
 export function FeedContent() {
@@ -29,12 +29,20 @@ export function FeedContent() {
     isBookmarked: showBookmarked ? true : undefined,
     categoryId,
     feedId,
-    limit: 30,
+    limit: 50,
   }), [search, sort, readFilter, showBookmarked, categoryId, feedId]);
 
-  const { data: items = [] } = useFeedItems(queryParams);
-  const totalCount = items.length;
-  const unreadCount = items.filter((i) => !i.isRead).length;
+  const countParams = useMemo(() => ({
+    search: search || undefined,
+    isRead: readFilter === "all" ? undefined : readFilter === "read" ? true : false,
+    isBookmarked: showBookmarked ? true : undefined,
+    categoryId,
+    feedId,
+  }), [search, readFilter, showBookmarked, categoryId, feedId]);
+
+  const { data: countData } = useFeedItemCount(countParams);
+  const totalCount = countData?.total ?? 0;
+  const unreadCount = countData?.unread ?? 0;
 
   const { mutate: markAllAsRead, isPending: isMarkingRead } = useMarkAllAsRead();
 

@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { feeds, userFeeds, feedItems, userInteractions, categories } from "@/db/schema";
-import { eq, and, or, ilike, lt, gt, desc, asc, inArray, sql } from "drizzle-orm";
+import { eq, and, ilike, lt, gt, inArray, sql } from "drizzle-orm";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -89,7 +89,7 @@ export type GetFeedItemsResult = {
  * with optional search, filter, sort, and cursor-based pagination.
  */
 export async function getFeedItems(params: FeedQueryParams = {}): Promise<GetFeedItemsResult> {
-  const { limit = 30, cursor, search, feedId, categoryId, isRead, isBookmarked, sort = "newest" } = params;
+  const { limit = 50, cursor, search, feedId, categoryId, isRead, isBookmarked, sort = "newest" } = params;
 
   try {
     const userId = await getUserId();
@@ -108,11 +108,11 @@ export async function getFeedItems(params: FeedQueryParams = {}): Promise<GetFee
     ];
 
     if (feedId) {
-      conditions.push(eq(feedItems.feedId, feedId));
+      conditions.push(sql`${feedItems.feedId}::text = ${feedId}`);
     }
 
     if (categoryId) {
-      conditions.push(eq(userFeeds.categoryId, categoryId));
+      conditions.push(sql`${userFeeds.categoryId}::text = ${categoryId}`);
     }
 
     if (search) {
@@ -189,8 +189,79 @@ export async function getFeedItems(params: FeedQueryParams = {}): Promise<GetFee
 
     return { items: pageItems, nextCursor };
   } catch (error) {
-    console.error("[getFeedItems] Failed:", error);
+    console.error("[getFeedItems] Failed:", error, { feedId, categoryId, search, limit });
     return { items: [], nextCursor: null };
+  }
+}
+
+export async function getFeedItemCount(params: FeedQueryParams = {}): Promise<{ total: number; unread: number }> {
+  const { search, feedId, categoryId, isRead, isBookmarked } = params;
+
+  try {
+    const userId = await getUserId();
+
+    const userFeedRecords = await db
+      .select({ feedId: userFeeds.feedId })
+      .from(userFeeds)
+      .where(eq(userFeeds.userId, userId));
+
+    if (userFeedRecords.length === 0) return { total: 0, unread: 0 };
+
+    const feedIds = userFeedRecords.map(r => r.feedId);
+
+    const conditions = [
+      inArray(feedItems.feedId, feedIds),
+    ];
+
+    if (feedId) {
+      conditions.push(sql`${feedItems.feedId}::text = ${feedId}`);
+    }
+
+    if (categoryId) {
+      conditions.push(sql`${userFeeds.categoryId}::text = ${categoryId}`);
+    }
+
+    if (search) {
+      const pattern = `%${search}%`;
+      conditions.push(
+        sql`(${ilike(feedItems.title, pattern)} OR ${ilike(feedItems.excerpt, pattern)} OR ${ilike(feedItems.author, pattern)})`
+      );
+    }
+
+    if (isRead === true) {
+      conditions.push(sql`COALESCE(${userInteractions.isRead}, false) = true`);
+    } else if (isRead === false) {
+      conditions.push(sql`COALESCE(${userInteractions.isRead}, false) = false`);
+    }
+
+    if (isBookmarked === true) {
+      conditions.push(sql`COALESCE(${userInteractions.isBookmarked}, false) = true`);
+    } else if (isBookmarked === false) {
+      conditions.push(sql`COALESCE(${userInteractions.isBookmarked}, false) = false`);
+    }
+
+    const [result] = await db
+      .select({
+        total: sql<number>`COUNT(*)`,
+        unread: sql<number>`COUNT(*) FILTER (WHERE COALESCE(${userInteractions.isRead}, false) = false)`,
+      })
+      .from(feedItems)
+      .innerJoin(feeds, eq(feedItems.feedId, feeds.id))
+      .innerJoin(userFeeds, and(eq(userFeeds.feedId, feeds.id), eq(userFeeds.userId, userId)))
+      .leftJoin(categories, eq(userFeeds.categoryId, categories.id))
+      .leftJoin(
+        userInteractions,
+        and(
+          eq(userInteractions.itemId, feedItems.id),
+          eq(userInteractions.userId, userId)
+        )
+      )
+      .where(and(...conditions));
+
+    return { total: Number(result?.total ?? 0), unread: Number(result?.unread ?? 0) };
+  } catch (error) {
+    console.error("[getFeedItemCount] Failed:", error, { feedId, categoryId, search });
+    return { total: 0, unread: 0 };
   }
 }
 

@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { fetchFeed } from "@/services/feed-service";
 import { db } from "@/db";
 import { feeds, feedItems, userFeeds } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 
 export const maxDuration = 60;
 
@@ -30,17 +30,26 @@ async function refreshSingleFeed(feed: typeof feeds.$inferSelect) {
     return { feedId: feed.id, title: feed.title ?? "Unknown", newItems: 0, error: result.error };
   }
 
-  let newItems = 0;
+  const articleUrls = result.articles.map(a => a.url);
 
-  for (const article of result.articles) {
-    const existing = await db
-      .select({ id: feedItems.id })
-      .from(feedItems)
-      .where(and(eq(feedItems.feedId, feed.id), eq(feedItems.url, article.url)))
-      .limit(1);
+  const existingItems = articleUrls.length > 0
+    ? await db
+        .select({ url: feedItems.url })
+        .from(feedItems)
+        .where(
+          and(
+            eq(feedItems.feedId, feed.id),
+            inArray(feedItems.url, articleUrls)
+          )
+        )
+    : [];
 
-    if (existing.length === 0) {
-      await db.insert(feedItems).values({
+  const existingUrls = new Set(existingItems.map(i => i.url));
+  const newArticles = result.articles.filter(a => !existingUrls.has(a.url));
+
+  if (newArticles.length > 0) {
+    await db.insert(feedItems).values(
+      newArticles.map((article) => ({
         feedId: feed.id,
         guid: article.id,
         title: article.title,
@@ -50,12 +59,16 @@ async function refreshSingleFeed(feed: typeof feeds.$inferSelect) {
         url: article.url,
         thumbnailUrl: article.thumbnailUrl,
         publishedAt: article.publishedAt ?? null,
-      });
-      newItems++;
-    }
+      }))
+    );
   }
 
-  return { feedId: feed.id, title: result.feedTitle, newItems, error: undefined as string | undefined };
+  return {
+    feedId: feed.id,
+    title: result.feedTitle,
+    newItems: newArticles.length,
+    error: undefined as string | undefined,
+  };
 }
 
 export async function POST(request: Request) {

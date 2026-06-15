@@ -37,7 +37,7 @@ export function FeedList({ search, sort, isRead, isBookmarked, categoryId, feedI
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useFeedItemsInfinite({ search, sort, isRead, isBookmarked, categoryId, feedId, limit: 30 });
+  } = useFeedItemsInfinite({ search, sort, isRead, isBookmarked, categoryId, feedId, limit: 50 });
 
   const [selectedArticle, setSelectedArticle] = useState<SelectedArticle | null>(null);
 

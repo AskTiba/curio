@@ -269,72 +269,77 @@ export async function getFeedItemCount(params: FeedQueryParams = {}): Promise<{ 
  * Adds a new feed for the user
  */
 export async function addFeed(url: string, categoryId?: string) {
-  const userId = await getUserId();
-  
-  // Clean URL
-  const trimmedUrl = url.trim();
-
-  // Validate and parse the feed
-  // We'll import dynamically to avoid client-side bundling issues if this is ever accidentally imported there
-  const { fetchFeed } = await import("@/services/feed-service");
-  const result = await fetchFeed(trimmedUrl);
-  
-  if (!result.success) {
-    throw new Error(result.error);
-  }
-
-  // Use the resolved feed URL (may differ from input after autodiscovery,
-  // e.g. user enters "https://expo.dev/blog" → resolved to "https://expo.dev/blog/rss.xml")
-  const resolvedUrl = result.feedUrl;
-
-  // 1. Upsert the Feed into the `feeds` table
-  let feedRecord = await db.query.feeds.findFirst({
-    where: eq(feeds.url, resolvedUrl),
-  });
-
-  if (!feedRecord) {
-    const [newFeed] = await db.insert(feeds).values({
-      url: resolvedUrl,
-      title: result.feedTitle,
-      description: result.feedDescription,
-      siteUrl: result.siteUrl,
-      iconUrl: result.iconUrl,
-      status: "healthy",
-      lastFetchedAt: new Date(),
-    }).returning();
-    feedRecord = newFeed;
+  try {
+    const userId = await getUserId();
     
-    if (!feedRecord) throw new Error("Failed to insert feed");
+    // Clean URL
+    const trimmedUrl = url.trim();
 
-    // 1b. Insert initial items for a brand new feed
-    if (result.articles.length > 0) {
-      await db.insert(feedItems).values(
-        result.articles.map((item) => ({
-          feedId: feedRecord!.id,
-          guid: item.id,
-          title: item.title,
-          excerpt: item.excerpt,
-          content: item.content,
-          author: item.author,
-          url: item.url,
-          thumbnailUrl: item.thumbnailUrl,
-          publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
-        }))
-      ).onConflictDoNothing(); // Ignore duplicates by guid
+    // Validate and parse the feed
+    // We'll import dynamically to avoid client-side bundling issues if this is ever accidentally imported there
+    const { fetchFeed } = await import("@/services/feed-service");
+    const result = await fetchFeed(trimmedUrl);
+    
+    if (!result.success) {
+      throw new Error(result.error);
     }
+
+    // Use the resolved feed URL (may differ from input after autodiscovery,
+    // e.g. user enters "https://expo.dev/blog" → resolved to "https://expo.dev/blog/rss.xml")
+    const resolvedUrl = result.feedUrl;
+
+    // 1. Upsert the Feed into the `feeds` table
+    let feedRecord = await db.query.feeds.findFirst({
+      where: eq(feeds.url, resolvedUrl),
+    });
+
+    if (!feedRecord) {
+      const [newFeed] = await db.insert(feeds).values({
+        url: resolvedUrl,
+        title: result.feedTitle,
+        description: result.feedDescription,
+        siteUrl: result.siteUrl,
+        iconUrl: result.iconUrl,
+        status: "healthy",
+        lastFetchedAt: new Date(),
+      }).returning();
+      feedRecord = newFeed;
+      
+      if (!feedRecord) throw new Error("Failed to insert feed");
+
+      // 1b. Insert initial items for a brand new feed
+      if (result.articles.length > 0) {
+        await db.insert(feedItems).values(
+          result.articles.map((item) => ({
+            feedId: feedRecord!.id,
+            guid: item.id,
+            title: item.title,
+            excerpt: item.excerpt,
+            content: item.content,
+            author: item.author,
+            url: item.url,
+            thumbnailUrl: item.thumbnailUrl,
+            publishedAt: item.publishedAt ? new Date(item.publishedAt) : null,
+          }))
+        ).onConflictDoNothing(); // Ignore duplicates by guid
+      }
+    }
+
+    if (!feedRecord) throw new Error("Feed record is missing");
+
+    // 2. Link feed to the user
+    await db.insert(userFeeds).values({
+      userId,
+      feedId: feedRecord.id,
+      categoryId: categoryId || null,
+    }).onConflictDoNothing();
+
+    revalidatePath("/", "layout");
+    return feedRecord;
+  } catch (error) {
+    console.error("[addFeed] Failed:", error);
+    throw error;
   }
-
-  if (!feedRecord) throw new Error("Feed record is missing");
-
-  // 2. Link feed to the user
-  await db.insert(userFeeds).values({
-    userId,
-    feedId: feedRecord.id,
-    categoryId: categoryId || null,
-  }).onConflictDoNothing();
-
-  revalidatePath("/", "layout");
-  return feedRecord;
 }
 
 /**

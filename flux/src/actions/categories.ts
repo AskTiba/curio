@@ -17,28 +17,38 @@ async function getUserId() {
 }
 
 export async function getUserCategories() {
-  const userId = await getUserId();
-  return db.query.categories.findMany({
-    where: eq(categories.userId, userId),
-    orderBy: (cats, { asc }) => [asc(cats.sortOrder)],
-  });
+  try {
+    const userId = await getUserId();
+    return await db.query.categories.findMany({
+      where: eq(categories.userId, userId),
+      orderBy: (cats, { asc }) => [asc(cats.sortOrder)],
+    });
+  } catch (error) {
+    console.error("[getUserCategories] Failed:", error);
+    return [];
+  }
 }
 
 export async function createCategory(name: string, color?: string) {
-  const userId = await getUserId();
-  
-  // Very simplistic sort order logic
-  const existing = await getUserCategories();
-  const nextOrder = existing.length > 0 ? existing[existing.length - 1].sortOrder! + 1 : 0;
+  try {
+    const userId = await getUserId();
+    
+    // Very simplistic sort order logic
+    const existing = await getUserCategories();
+    const nextOrder = existing.length > 0 ? existing[existing.length - 1].sortOrder! + 1 : 0;
 
-  const [newCat] = await db.insert(categories).values({
-    userId,
-    name,
-    sortOrder: nextOrder,
-    // Note: If color is desired, it requires a schema update. 
-    // For now, we omit storing color directly, but we accept it to maintain UI contract.
-  }).returning();
+    const [newCat] = await db.insert(categories).values({
+      userId,
+      name,
+      sortOrder: nextOrder,
+      // Note: If color is desired, it requires a schema update. 
+      // For now, we omit storing color directly, but we accept it to maintain UI contract.
+    }).returning();
 
-  revalidatePath("/", "layout");
-  return newCat;
+    revalidatePath("/", "layout");
+    return newCat;
+  } catch (error) {
+    console.error("[createCategory] Failed:", error);
+    throw error;
+  }
 }

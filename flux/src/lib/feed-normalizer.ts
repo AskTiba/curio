@@ -1,5 +1,7 @@
 import type { Article } from "@/types";
 
+type MediaAttr = { $?: { url?: string } };
+
 interface RawFeedItem {
   title?: string | null;
   link?: string | null;
@@ -12,6 +14,8 @@ interface RawFeedItem {
   creator?: string | null;
   "dc:creator"?: string | null;
   enclosure?: { url?: string } | null;
+  "media:thumbnail"?: MediaAttr;
+  "media:content"?: MediaAttr | MediaAttr[];
   media?: { content?: { url?: string }[]; thumbnail?: { url?: string }[] } | null;
 }
 
@@ -79,10 +83,17 @@ export function normalizeFeed(
     const author =
       extractText(item.creator) || extractText(item["dc:creator"]) || undefined;
 
+    const mediaContent = item["media:content"];
+    const mediaContentUrl = Array.isArray(mediaContent)
+      ? mediaContent[0]?.$?.url
+      : mediaContent?.$?.url;
+
     const thumbnailUrl =
       item.enclosure?.url ??
-      item.media?.content?.[0]?.url ??
-      item.media?.thumbnail?.[0]?.url ??
+      mediaContentUrl ??
+      item["media:thumbnail"]?.$?.url ??
+      (item as any).media?.content?.[0]?.url ??
+      (item as any).media?.thumbnail?.[0]?.url ??
       undefined;
 
     const publishedAt = normalizeDate(item.isoDate ?? item.pubDate);

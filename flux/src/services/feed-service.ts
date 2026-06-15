@@ -44,6 +44,10 @@ function discoverFeedUrl(html: string): string | null {
   return null;
 }
 
+function sanitizeXml(xml: string): string {
+  return xml.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#[0-9]+;|#x[0-9a-fA-F]+;)/g, "&amp;");
+}
+
 async function attemptFetch(
   url: string
 ): Promise<{ feed: Awaited<ReturnType<ReturnType<typeof getParser>["parseURL"]>> | null; error?: string }> {
@@ -52,12 +56,35 @@ async function attemptFetch(
     return { feed };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error parsing feed";
+
     if (message.includes("ENOTFOUND") || message.includes("getaddrinfo")) {
       return { feed: null, error: "Could not reach the feed server — check the URL" };
     }
     if (message.includes("timeout") || message.includes("TIMEOUT")) {
       return { feed: null, error: "Feed took too long to respond (10s timeout)" };
     }
+
+    // Some feeds have bare & in URLs that break XML parsers.
+    // Try fetching the raw XML, sanitizing, and re-parsing.
+    if (message.includes("Invalid character") || message.includes("entity")) {
+      try {
+        const res = await fetch(url, {
+          headers: {
+            "User-Agent": "Curio/1.0 (RSS Feed Reader)",
+            Accept: "application/rss+xml, application/xml, text/xml, */*",
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!res.ok) return { feed: null, error: `Feed returned HTTP ${res.status}` };
+        const raw = await res.text();
+        const sanitized = sanitizeXml(raw);
+        const feed = await getParser().parseString(sanitized);
+        return { feed };
+      } catch {
+        return { feed: null, error: message };
+      }
+    }
+
     return { feed: null, error: message };
   }
 }

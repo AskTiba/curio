@@ -34,7 +34,7 @@ async function refreshSingleFeed(feed: typeof feeds.$inferSelect) {
 
   const existingItems = articleUrls.length > 0
     ? await db
-        .select({ url: feedItems.url })
+        .select({ url: feedItems.url, thumbnailUrl: feedItems.thumbnailUrl })
         .from(feedItems)
         .where(
           and(
@@ -44,8 +44,18 @@ async function refreshSingleFeed(feed: typeof feeds.$inferSelect) {
         )
     : [];
 
-  const existingUrls = new Set(existingItems.map(i => i.url));
-  const newArticles = result.articles.filter(a => !existingUrls.has(a.url));
+  const urlToExisting = new Map(existingItems.map(i => [i.url, i]));
+  const newArticles: typeof result.articles = [];
+  const backfillUpdates: { url: string; thumbnailUrl: string }[] = [];
+
+  for (const article of result.articles) {
+    const existing = urlToExisting.get(article.url);
+    if (!existing) {
+      newArticles.push(article);
+    } else if (article.thumbnailUrl && !existing.thumbnailUrl) {
+      backfillUpdates.push({ url: article.url, thumbnailUrl: article.thumbnailUrl });
+    }
+  }
 
   if (newArticles.length > 0) {
     await db.insert(feedItems).values(
@@ -63,10 +73,22 @@ async function refreshSingleFeed(feed: typeof feeds.$inferSelect) {
     );
   }
 
+  for (const update of backfillUpdates) {
+    await db
+      .update(feedItems)
+      .set({ thumbnailUrl: update.thumbnailUrl })
+      .where(
+        and(
+          eq(feedItems.feedId, feed.id),
+          eq(feedItems.url, update.url)
+        )
+      );
+  }
+
   return {
     feedId: feed.id,
     title: result.feedTitle,
-    newItems: newArticles.length,
+    newItems: newArticles.length + backfillUpdates.length,
     error: undefined as string | undefined,
   };
 }

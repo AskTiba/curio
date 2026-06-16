@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Compass, Plus } from "lucide-react";
+import { Compass, Plus, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddFeedDialog } from "@/components/features/feed/AddFeedDialog";
 import { SearchBar } from "@/components/features/feed/SearchBar";
+import { useAuth } from "@/components/features/auth/AuthProvider";
 
 /** Top-level nav links with their route paths */
 const NAV_LINKS = [
@@ -29,6 +30,21 @@ export function TopNav() {
   const [isAddFeedOpen, setIsAddFeedOpen] = useState(false);
   const [search, setSearch] = useState(pathname === "/feed" ? searchParams.get("search") ?? "" : "");
 
+  const { user, signOut } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  const getInitials = (email?: string | null): string | null => {
+    if (!email) return null;
+    const localPart = email.split("@")[0];
+    const parts = localPart.split(/[.\-_]/);
+    const initials = parts.map(p => p[0]).filter(Boolean).join("").toUpperCase().slice(0, 2);
+    return initials || null;
+  };
+
+  const initials = getInitials(user?.email);
+
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value);
     if (pathname === "/feed") {
@@ -48,6 +64,27 @@ export function TopNav() {
     const urlSearch = pathname === "/feed" ? searchParams.get("search") ?? "" : "";
     setSearch(urlSearch);
   }, [pathname, searchParams]);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target as Node) &&
+        avatarRef.current && !avatarRef.current.contains(e.target as Node)
+      ) {
+        setShowMenu(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowMenu(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showMenu]);
 
   return (
     <>
@@ -97,8 +134,35 @@ export function TopNav() {
             <Plus className="size-4 text-text-secondary" />
           </button>
 
-          <div className="size-8 bg-[#7C3AED] rounded-full flex items-center justify-center text-[11px] font-bold text-white tracking-wider cursor-pointer shadow-sm">
-            MS
+          <div className="relative">
+            <div
+              ref={avatarRef}
+              onClick={() => setShowMenu(prev => !prev)}
+              className="size-8 bg-[#7C3AED] rounded-full flex items-center justify-center text-[11px] font-bold text-white tracking-wider cursor-pointer shadow-sm"
+            >
+              {initials ? (
+                <span>{initials}</span>
+              ) : (
+                <User className="w-4 h-4" />
+              )}
+            </div>
+            {showMenu && (
+              <div
+                ref={menuRef}
+                className="absolute right-0 top-full mt-2 w-48 bg-surface border border-border rounded-lg shadow-md py-1 z-50"
+              >
+                <div className="px-3 py-2 text-xs text-text-tertiary border-b border-border truncate">
+                  {user?.email}
+                </div>
+                <button
+                  onClick={() => { signOut(); setShowMenu(false); }}
+                  className="flex items-center gap-2 w-full px-3 py-2 text-xs text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

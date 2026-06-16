@@ -192,9 +192,9 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="w-48 min-w-48 border-r border-border bg-bg-secondary h-[calc(100vh-4rem)] flex flex-col sticky top-16 overflow-y-auto">
-        <div className="p-2 flex flex-col gap-6">
-          {/* Main Feed Sections */}
+      <aside className="w-48 min-w-48 border-r border-border bg-bg-secondary h-[calc(100vh-4rem)] flex flex-col sticky top-16">
+        {/* Fixed Top: Nav + Categories Header */}
+        <div className="flex-shrink-0 px-2 pt-2 flex flex-col gap-6">
           <nav className="flex flex-col gap-1">
             <NavItem
               icon={FileText}
@@ -212,81 +212,82 @@ export function Sidebar() {
             />
           </nav>
 
-          {/* Categories Section */}
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between px-2 py-2">
-              <span className="text-[10px] font-bold text-text-tertiary uppercase">Categories</span>
-              <button 
-                onClick={() => setIsAddCategoryOpen(true)}
-                className="text-text-tertiary hover:text-accent transition-colors cursor-pointer"
-                aria-label="Add category"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-0.5">
-              {categories.map((category, index) => {
-                const isExpanded = expandedCats[category.id] !== false; // default true
-                const catFeeds = feedsByCategory[category.id] || [];
-                const dotColor = getColorClasses(index);
-
-                return (
-                  <div key={category.id}>
-                    <div onClick={() => toggleCategory(category.id)}>
-                      <NavItem
-                        icon={Circle}
-                        label={category.name}
-                        count={getCategoryUnreadCount(category.id)}
-                        dotColor={dotColor}
-                      />
-                    </div>
-                    {isExpanded && catFeeds.length > 0 && (
-                      <div className="flex flex-col gap-0.5 mb-2">
-                        {catFeeds.map(feed => (
-                          <SubNavItem
-                            key={feed.id}
-                            label={feed.title || "Unknown Feed"}
-                            count={getFeedUnreadCount(feed.id)}
-                            letter={(feed.title || "U")[0].toUpperCase()}
-                            color={dotColor}
-                            href={`/feed?feed=${feed.id}`}
-                            onEdit={() => setEditingFeed(feed)}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Uncategorized Feeds */}
-              {uncategorizedFeeds.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex items-center justify-between px-2 py-2">
-                    <span className="text-[10px] font-bold text-text-tertiary uppercase">Uncategorized</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    {uncategorizedFeeds.map(feed => (
-                      <SubNavItem
-                        key={feed.id}
-                        label={feed.title || "Unknown Feed"}
-                        count={getFeedUnreadCount(feed.id)}
-                        letter={(feed.title || "U")[0].toUpperCase()}
-                        color="bg-gray-500"
-                        href={`/feed?feed=${feed.id}`}
-                        onEdit={() => setEditingFeed(feed)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Categories Header */}
+          <div className="flex items-center justify-between px-2 py-2">
+            <span className="text-[10px] font-bold text-text-tertiary uppercase">Categories</span>
+            <button 
+              onClick={() => setIsAddCategoryOpen(true)}
+              className="text-text-tertiary hover:text-accent transition-colors cursor-pointer"
+              aria-label="Add category"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
           </div>
         </div>
 
-        {/* Footer Status */}
-        <div className="mt-auto p-4 border-t border-border-subtle">
+        {/* Scrollable Middle: Categories List */}
+        <div className="flex-1 overflow-y-auto thin-scrollbar px-2">
+          <div className="flex flex-col gap-0.5">
+            {categories.map((category, index) => {
+              const isExpanded = expandedCats[category.id] !== false; // default true
+              const catFeeds = feedsByCategory[category.id] || [];
+              const dotColor = getColorClasses(index);
+
+              return (
+                <div key={category.id}>
+                  <div onClick={() => toggleCategory(category.id)}>
+                    <NavItem
+                      icon={Circle}
+                      label={category.name}
+                      count={getCategoryUnreadCount(category.id)}
+                      dotColor={dotColor}
+                    />
+                  </div>
+                  {isExpanded && catFeeds.length > 0 && (
+                    <div className="flex flex-col gap-0.5 mb-2">
+                      {catFeeds.map(feed => (
+                        <SubNavItem
+                          key={feed.id}
+                          label={feed.title || "Unknown Feed"}
+                          count={getFeedUnreadCount(feed.id)}
+                          letter={(feed.title || "U")[0].toUpperCase()}
+                          color={dotColor}
+                          href={`/feed?feed=${feed.id}`}
+                          onEdit={() => setEditingFeed(feed)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Uncategorized Feeds */}
+            {uncategorizedFeeds.length > 0 && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between px-2 py-2">
+                  <span className="text-[10px] font-bold text-text-tertiary uppercase">Uncategorized</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  {uncategorizedFeeds.map(feed => (
+                    <SubNavItem
+                      key={feed.id}
+                      label={feed.title || "Unknown Feed"}
+                      count={getFeedUnreadCount(feed.id)}
+                      letter={(feed.title || "U")[0].toUpperCase()}
+                      color="bg-gray-500"
+                      href={`/feed?feed=${feed.id}`}
+                      onEdit={() => setEditingFeed(feed)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fixed Bottom: Footer Status */}
+        <div className="flex-shrink-0 p-4 border-t border-border-subtle">
           <div className="flex items-center gap-2 text-xs text-text-tertiary font-semibold">
             <div className="w-4 h-4 rounded-full border border-success flex items-center justify-center">
               <CheckCircle2 className="w-3 h-3 text-success" />

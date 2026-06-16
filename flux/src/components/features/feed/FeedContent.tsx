@@ -2,12 +2,14 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { FeedHeader } from "./FeedHeader";
 import { FeedFilterBar } from "./FeedFilterBar";
 import type { ReadFilter } from "./FeedFilterBar";
 import { FeedList } from "./FeedList";
 import { useFeedItems, useFeedItemCount } from "@/hooks/useFeeds";
 import { useMarkAllAsRead } from "@/hooks/useInteractions";
+import { useRefreshFeeds } from "@/hooks/useRefreshFeeds";
 
 export function FeedContent() {
   const searchParams = useSearchParams();
@@ -45,6 +47,7 @@ export function FeedContent() {
   const unreadCount = countData?.unread ?? 0;
 
   const { mutate: markAllAsRead, isPending: isMarkingRead } = useMarkAllAsRead();
+  const { mutate: refreshFeeds, isPending: isRefreshing } = useRefreshFeeds();
 
   const setParam = useCallback((key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -69,10 +72,14 @@ export function FeedContent() {
       />
 
       <div className="flex-1 flex flex-col">
-        <div className="py-2 bg-accent-subtle text-accent text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-100 transition-colors border-b border-border-subtle">
-          <span>↑</span>
-          <span>Check for new items</span>
-        </div>
+        <button
+          onClick={() => refreshFeeds(undefined)}
+          disabled={isRefreshing}
+          className="w-full py-2 bg-accent-subtle text-text-primary text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-bg-tertiary transition-colors border-b border-border-subtle disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span className={cn(isRefreshing && "animate-spin")}>↑</span>
+          <span>{isRefreshing ? "Refreshing..." : "Check for new items"}</span>
+        </button>
 
         <FeedFilterBar
           readFilter={readFilter}

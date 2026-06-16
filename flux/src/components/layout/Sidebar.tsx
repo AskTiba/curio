@@ -61,7 +61,7 @@ function NavItem({
     "flex items-center justify-between w-full px-2 py-1 rounded-md transition-all text-xs font-medium group cursor-pointer",
     isActive
       ? "bg-accent-subtle text-accent"
-      : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+      : "text-text-secondary hover:bg-bg-tertiary hover:text-text-hover"
   );
 
   if (href) {
@@ -99,7 +99,7 @@ function SubNavItem({ label, count, letter, color, href, onEdit }: SubNavItemPro
       >
         {letter}
       </div>
-      <span className="text-text-secondary group-hover:text-text-primary font-medium truncate">
+      <span className="text-text-secondary group-hover:text-text-hover font-medium truncate">
         {label}
       </span>
     </>
@@ -121,7 +121,7 @@ function SubNavItem({ label, count, letter, color, href, onEdit }: SubNavItemPro
         {onEdit && (
           <button 
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="hidden group-hover:flex items-center justify-center size-5 rounded hover:bg-bg-secondary text-text-tertiary hover:text-text-primary"
+            className="hidden group-hover:flex items-center justify-center size-5 rounded hover:bg-bg-secondary text-text-tertiary hover:text-text-hover"
             title="Move feed"
           >
             <MoreHorizontal className="w-3.5 h-3.5" />

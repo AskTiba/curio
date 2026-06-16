@@ -3,11 +3,12 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Compass, Plus, LogOut, User } from "lucide-react";
+import { Compass, Plus, LogOut, User, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddFeedDialog } from "@/components/features/feed/AddFeedDialog";
 import { SearchBar } from "@/components/features/feed/SearchBar";
 import { useAuth } from "@/components/features/auth/AuthProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 /** Top-level nav links with their route paths */
 const NAV_LINKS = [
@@ -31,6 +32,7 @@ export function TopNav() {
   const [search, setSearch] = useState(pathname === "/feed" ? searchParams.get("search") ?? "" : "");
 
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -96,7 +98,7 @@ export function TopNav() {
             <div className="w-6 h-6 bg-[#2563EB] rounded-md flex items-center justify-center">
               <Compass className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[15px] font-extrabold text-[#1A1D21] tracking-tight">Curio</span>
+            <span className="text-[15px] font-extrabold text-text-primary tracking-tight">Curio</span>
           </Link>
 
           <nav className="hidden sm:flex gap-1 items-center text-xs font-semibold">
@@ -110,7 +112,7 @@ export function TopNav() {
                     "px-2.5 py-1.5 rounded-md transition-all",
                     isActive
                       ? "text-text-primary bg-bg-secondary"
-                      : "text-text-tertiary hover:text-text-primary hover:bg-bg-secondary/50"
+                      : "text-text-tertiary hover:text-text-hover hover:bg-bg-secondary/50"
                   )}
                 >
                   {label}
@@ -132,6 +134,14 @@ export function TopNav() {
             aria-label="Add new feed"
           >
             <Plus className="size-4 text-text-secondary" />
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 hover:bg-bg-tertiary rounded-md transition-colors cursor-pointer text-text-tertiary hover:text-text-hover"
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
           </button>
 
           <div className="relative">
@@ -156,7 +166,7 @@ export function TopNav() {
                 </div>
                 <button
                   onClick={() => { signOut(); setShowMenu(false); }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-xs text-text-secondary hover:bg-bg-tertiary hover:text-text-primary transition-colors"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-xs text-text-secondary hover:bg-bg-tertiary hover:text-text-hover transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Sign Out

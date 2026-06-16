@@ -31,7 +31,7 @@ export function FeedFilterBar({
               "px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer",
               readFilter === filter
                 ? "bg-accent text-white shadow-sm"
-                : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+                : "text-text-secondary hover:bg-bg-tertiary hover:text-text-hover"
             )}
           >
             {filter === "all" && "All"}
@@ -59,7 +59,7 @@ export function FeedFilterBar({
           "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer",
           showBookmarked
             ? "bg-accent/10 text-accent border border-accent/20"
-            : "text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+            : "text-text-secondary hover:bg-bg-tertiary hover:text-text-hover"
         )}
       >
         <Bookmark className={cn("w-3 h-3", showBookmarked && "fill-accent")} />

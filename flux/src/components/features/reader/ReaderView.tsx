@@ -132,7 +132,7 @@ export function ReaderView({
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 h-8 rounded-md px-3 bg-bg-tertiary border border-border text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-border transition-all"
+              className="inline-flex items-center justify-center gap-1.5 h-8 rounded-md px-3 bg-bg-tertiary border border-border text-xs font-semibold text-text-secondary hover:text-text-hover hover:bg-border transition-all"
             >
               <span>Visit Link</span>
               <ExternalLink className="w-3.5 h-3.5" />

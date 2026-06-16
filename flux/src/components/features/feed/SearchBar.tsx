@@ -55,7 +55,7 @@ export function SearchBar({ value, onChange, placeholder = "Search articles..." 
       {local && (
         <button
           onClick={handleClear}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-colors cursor-pointer"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-text-tertiary hover:text-text-hover hover:bg-bg-tertiary transition-colors cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
         </button>

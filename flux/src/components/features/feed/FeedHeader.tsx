@@ -57,7 +57,7 @@ export function FeedHeader({
                 "p-1.5 transition-colors cursor-pointer rounded-sm",
                 viewMode === mode
                   ? "bg-surface text-text-primary shadow-sm border border-border"
-                  : "text-text-tertiary hover:text-text-primary"
+                  : "text-text-tertiary hover:text-text-hover"
               )}
             >
               <Icon className="w-4 h-4" />

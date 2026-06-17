@@ -13,10 +13,10 @@ const badgeVariants = cva(
         warning: "bg-warning/10 text-warning",
         error: "bg-error/10 text-error",
         // Category Specifics (Preview Match)
-        design: "bg-pink-100 text-pink-600",
-        backend: "bg-orange-100 text-orange-600",
-        aiml: "bg-purple-100 text-purple-600",
-        frontend: "bg-blue-100 text-blue-600",
+        design: "bg-pink-500/10 text-pink-500",
+        backend: "bg-orange-500/10 text-orange-500",
+        aiml: "bg-purple-500/10 text-purple-500",
+        frontend: "bg-blue-500/10 text-blue-500",
       },
     },
     defaultVariants: {

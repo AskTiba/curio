@@ -62,11 +62,11 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
               required
               disabled={isPending}
               autoFocus
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-text-primary placeholder:text-gray-400 focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-bg-tertiary"
             />
           </div>
           {error && (
-            <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-md p-2.5">
+            <div className="flex items-start gap-2 text-xs text-error bg-error/10 border border-error/20 rounded-md p-2.5">
               <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>{error instanceof Error ? error.message : "Failed to add feed"}</span>
             </div>
@@ -85,7 +85,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               disabled={isPending}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-gray-50 appearance-none"
+              className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border rounded-lg text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-bg-tertiary appearance-none"
             >
               <option value="">Uncategorized</option>
               {categories.map((cat) => (
@@ -104,7 +104,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
         </div>
 
         {/* Info box */}
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/70 border border-blue-100">
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-accent-subtle border border-accent/20">
           <Rss className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <p className="text-xs text-text-secondary leading-relaxed">
             Curio will automatically parse the feed and extract its title, description, and icon.

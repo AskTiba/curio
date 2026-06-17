@@ -48,9 +48,9 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
       
       {/* Modal Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md pointer-events-auto flex flex-col overflow-hidden border border-gray-100">
+        <div className="bg-surface rounded-xl shadow-2xl w-full max-w-md pointer-events-auto flex flex-col overflow-hidden border border-border">
           {/* Header */}
-          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-border">
             <div className="flex flex-col gap-1">
               <h2 className="text-base font-bold text-text-primary tracking-tight">{title}</h2>
               {description && (
@@ -59,7 +59,7 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
             </div>
             <button
               onClick={onClose}
-              className="h-7 w-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer -mr-1 -mt-0.5"
+              className="h-7 w-7 flex items-center justify-center rounded-md text-text-tertiary hover:text-text-hover hover:bg-bg-tertiary transition-colors cursor-pointer -mr-1 -mt-0.5"
               aria-label="Close dialog"
             >
               <X className="w-4 h-4" />

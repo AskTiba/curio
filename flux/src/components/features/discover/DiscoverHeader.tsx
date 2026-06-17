@@ -21,7 +21,7 @@ export function DiscoverHeader() {
         <input
           type="text"
           placeholder="Search by topic, publication, or URL..."
-          className="w-full pl-9 pr-4 py-2 bg-bg-secondary border border-border-subtle rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-border transition-all outline-none placeholder:text-text-tertiary"
+          className="w-full pl-9 pr-4 py-2 bg-bg-secondary border border-border-subtle rounded-lg text-sm focus:bg-surface focus:ring-2 focus:ring-accent/20 focus:border-border transition-all outline-none placeholder:text-text-tertiary"
         />
       </div>
     </div>

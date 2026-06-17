@@ -52,10 +52,10 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
   return (
     <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm transition-all duration-300">
       <div 
-        className="w-full md:w-[85%] lg:w-[70%] max-w-4xl h-full bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
+        className="w-full md:w-[85%] lg:w-[70%] max-w-4xl h-full bg-surface shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
       >
         {/* Header Strip */}
-        <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-border z-10 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-surface/90 backdrop-blur-md border-b border-border z-10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 text-sm font-semibold text-text-secondary">
             <span className="text-accent">{article.source}</span>
             {article.url && (
@@ -71,7 +71,7 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
           </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 text-text-secondary transition-colors"
+            className="p-2 rounded-full hover:bg-bg-tertiary text-text-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -117,7 +117,7 @@ export function ArticleReaderModal({ isOpen, onClose, article }: ArticleReaderMo
                 prose-headings:font-bold prose-headings:text-text-primary prose-headings:tracking-tight
                 prose-a:text-accent hover:prose-a:text-accent-hover prose-a:no-underline hover:prose-a:underline
                 prose-img:rounded-xl prose-img:shadow-md
-                prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-xl
+                prose-pre:bg-bg-secondary prose-pre:text-text-primary prose-pre:rounded-xl
                 prose-p:mb-6 prose-li:mb-2"
               dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
             />

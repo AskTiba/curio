@@ -12,7 +12,7 @@ export function DigestHeader() {
     <div className="flex flex-col sm:flex-row text-sm sm:items-center justify-between px-4 sm:px-8 py-3 sm:py-4 gap-3 sm:gap-0 border-b border-border bg-surface sticky top-0 z-40">
       <div className="flex items-baseline gap-3 shrink-0">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500" />
+          <Sparkles className="w-4 h-4 text-warning" />
           <h1 className="font-semibold text-base tracking-tight">Digest</h1>
         </div>
         <span className="text-text-tertiary font-medium">Today&apos;s Summary</span>

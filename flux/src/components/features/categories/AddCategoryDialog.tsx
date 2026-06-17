@@ -71,11 +71,11 @@ export function AddCategoryDialog({ isOpen, onClose }: AddCategoryDialogProps) {
               required
               disabled={isPending}
               autoFocus
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-text-primary placeholder:text-gray-400 focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full pl-10 pr-4 py-2.5 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all outline-none disabled:opacity-50 disabled:bg-bg-tertiary"
             />
           </div>
           {error && (
-            <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-md p-2.5">
+            <div className="flex items-start gap-2 text-xs text-error bg-error/10 border border-error/20 rounded-md p-2.5">
               <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <span>{error instanceof Error ? error.message : "Failed to create category"}</span>
             </div>
@@ -96,8 +96,8 @@ export function AddCategoryDialog({ isOpen, onClose }: AddCategoryDialogProps) {
                 disabled={isPending}
                 className={`w-7 h-7 rounded-full transition-all duration-150 hover:scale-110 flex items-center justify-center disabled:opacity-50 cursor-pointer ${color.value} ${
                   selectedColor === color.value 
-                    ? "ring-2 ring-offset-2 ring-gray-900 scale-110" 
-                    : "ring-0 hover:ring-1 hover:ring-offset-1 hover:ring-gray-300"
+                    ? "ring-2 ring-offset-2 ring-border scale-110" 
+                    : "ring-0 hover:ring-1 hover:ring-offset-1 hover:ring-border-subtle"
                 }`}
                 aria-label={`Select ${color.name} color`}
               />
@@ -106,7 +106,7 @@ export function AddCategoryDialog({ isOpen, onClose }: AddCategoryDialogProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
           <Button type="button" variant="ghost" size="md" onClick={handleClose} disabled={isPending}>
             Cancel
           </Button>

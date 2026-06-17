@@ -29,7 +29,7 @@ export function SavedHeader({ count = 0 }: SavedHeaderProps) {
           <input
             type="text"
             placeholder="Filter saved..."
-            className="w-40 pl-8 pr-3 py-1.5 bg-bg-secondary border border-border-subtle rounded-md text-xs focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-border transition-all outline-none placeholder:text-text-tertiary"
+            className="w-40 pl-8 pr-3 py-1.5 bg-bg-secondary border border-border-subtle rounded-md text-xs focus:bg-surface focus:ring-2 focus:ring-accent/20 focus:border-border transition-all outline-none placeholder:text-text-tertiary"
           />
         </div>
 

@@ -44,7 +44,7 @@ export function DigestSection({
             {articleCount} articles
           </span>
         </div>
-        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        <Sparkles className="w-3.5 h-3.5 text-warning" />
       </div>
 
       {/* AI Summary */}

@@ -57,7 +57,7 @@ export function FeedItem({
         onClick={handleClick}
       >
         {!isRead && (
-          <div className="w-1.5 h-1.5 shrink-0 bg-accent rounded-full shadow-[0_0_0_2px_rgba(37,99,235,0.1)]" />
+          <div className="w-1.5 h-1.5 shrink-0 bg-accent rounded-full ring-2 ring-accent/10" />
         )}
         {isRead && <div className="w-1.5 h-1.5 shrink-0" />}
         <div className={cn("w-4 h-4 rounded-sm shadow-sm flex items-center justify-center text-[9px] font-bold text-white shrink-0", sourceColor, isRead && "grayscale opacity-80")}>
@@ -139,7 +139,7 @@ export function FeedItem({
       {/* Column 1: Unread Indicator + Bookmark */}
       <div className="flex flex-col items-center gap-1.5 pt-1">
         {!isRead && (
-          <div className="w-1.5 h-1.5 mt-1 bg-accent rounded-full shadow-[0_0_0_2px_rgba(37,99,235,0.1)]" />
+          <div className="w-1.5 h-1.5 mt-1 bg-accent rounded-full ring-2 ring-accent/10" />
         )}
         <button
           onClick={(e) => {

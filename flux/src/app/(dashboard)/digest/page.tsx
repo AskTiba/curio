@@ -9,8 +9,8 @@ export default function DigestPage() {
       <div className="flex-1">
         <div className="max-w-[900px] w-full mx-auto px-4 sm:px-8 py-6">
           {/* Digest Introduction */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-lg">
-            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+          <div className="mb-6 p-4 bg-gradient-to-r from-accent-subtle to-bg-secondary border border-accent/20 rounded-lg">
+            <p className="text-xs text-text-primary font-medium leading-relaxed">
               <span className="font-bold">AI-generated summary</span> — Your personalized digest
               covers <span className="font-bold">47 articles</span> across{" "}
               <span className="font-bold">5 categories</span> from the last 24 hours.

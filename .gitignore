@@ -12,3 +12,11 @@ next-env.d.ts
 .coverage
 *:Zone.Identifier
 *.zip
+
+# AI collaboration files (keep local, never push)
+.devpartner/
+GEMINI.md
+implementation_plan.md
+skills-1.0/
+AGENTS.md
+CLAUDE.md

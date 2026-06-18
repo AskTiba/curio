@@ -194,6 +194,35 @@ export async function getFeedItems(params: FeedQueryParams = {}): Promise<GetFee
   }
 }
 
+export async function getFeedUnreadCounts(): Promise<{ feedId: string; categoryId: string | null; unreadCount: number }[]> {
+  try {
+    const userId = await getUserId();
+
+    const results = await db
+      .select({
+        feedId: userFeeds.feedId,
+        categoryId: userFeeds.categoryId,
+        unreadCount: sql<number>`COUNT(*) FILTER (WHERE COALESCE(${userInteractions.isRead}, false) = false)`,
+      })
+      .from(userFeeds)
+      .leftJoin(feedItems, eq(feedItems.feedId, userFeeds.feedId))
+      .leftJoin(
+        userInteractions,
+        and(
+          eq(userInteractions.itemId, feedItems.id),
+          eq(userInteractions.userId, userId)
+        )
+      )
+      .where(eq(userFeeds.userId, userId))
+      .groupBy(userFeeds.feedId, userFeeds.categoryId);
+
+    return results;
+  } catch (error) {
+    console.error("[getFeedUnreadCounts] Failed:", error);
+    return [];
+  }
+}
+
 export async function getFeedItemCount(params: FeedQueryParams = {}): Promise<{ total: number; unread: number }> {
   const { search, feedId, categoryId, isRead, isBookmarked } = params;
 

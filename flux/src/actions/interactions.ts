@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { userInteractions, feedItems, userFeeds, feeds, categories } from "@/db/schema";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -129,7 +129,7 @@ export async function getBookmarkedItems() {
       .where(
         and(
           eq(userInteractions.userId, userId),
-          eq(userInteractions.isBookmarked, true)
+          sql`${userInteractions.isBookmarked} = true`
         )
       )
       .orderBy(desc(userInteractions.bookmarkedAt));

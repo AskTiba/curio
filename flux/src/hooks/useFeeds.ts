@@ -1,10 +1,11 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUserFeeds, getFeedItems, getFeedItemCount, addFeed, updateFeedCategory } from "@/actions/feeds";
+import { getUserFeeds, getFeedItems, getFeedItemCount, getFeedUnreadCounts, addFeed, updateFeedCategory } from "@/actions/feeds";
 import type { FeedQueryParams } from "@/actions/feeds";
 
 export const FEEDS_QUERY_KEY = ["feeds"];
 export const FEED_ITEMS_QUERY_KEY = ["feedItems"];
 export const FEED_ITEM_COUNT_KEY = ["feedItemCount"];
+export const FEED_UNREAD_COUNTS_KEY = ["feedUnreadCounts"];
 
 export function useFeeds() {
   return useQuery({
@@ -25,6 +26,14 @@ export function useFeedItemCount(params?: Omit<FeedQueryParams, "limit" | "curso
   return useQuery({
     queryKey: [...FEED_ITEM_COUNT_KEY, params],
     queryFn: () => getFeedItemCount(params),
+    refetchInterval: 120_000,
+  });
+}
+
+export function useFeedUnreadCounts() {
+  return useQuery({
+    queryKey: FEED_UNREAD_COUNTS_KEY,
+    queryFn: () => getFeedUnreadCounts(),
     refetchInterval: 120_000,
   });
 }

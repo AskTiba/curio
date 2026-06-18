@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { FileText, Bookmark, CheckCircle2, Circle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AddCategoryDialog } from "@/components/features/categories/AddCategoryDialog";
-import { useFeeds, useFeedItems } from "@/hooks/useFeeds";
+import { useFeeds, useFeedUnreadCounts, useFeedItemCount } from "@/hooks/useFeeds";
 import { useCategories } from "@/hooks/useCategories";
 
 import { EditFeedCategoryDialog } from "@/components/features/feed/EditFeedCategoryDialog";
@@ -147,10 +147,13 @@ export function Sidebar() {
 
   const { data: feeds = [] } = useFeeds();
   const { data: categories = [] } = useCategories();
-  const { data: items = [] } = useFeedItems();
+  const { data: unreadCounts = [] } = useFeedUnreadCounts();
+  const { data: countData } = useFeedItemCount();
+  const { data: bookmarkedCount } = useFeedItemCount({ isBookmarked: true });
 
-  const unreadItemsCount = items.filter(i => !i.isRead).length;
-  const savedItemsCount = items.filter(i => i.isBookmarked).length;
+  const unreadItemsCount = countData?.unread ?? 0;
+  const savedItemsCount = bookmarkedCount?.total ?? 0;
+  const unreadCountMap = new Map(unreadCounts.map(r => [r.feedId, r.unreadCount]));
 
   const toggleCategory = (id: string) => {
     setExpandedCats(prev => ({ ...prev, [id]: !prev[id] }));
@@ -170,7 +173,7 @@ export function Sidebar() {
   });
 
   const getFeedUnreadCount = (feedId: string) => {
-    return items.filter(i => i.feedId === feedId && !i.isRead).length;
+    return unreadCountMap.get(feedId) ?? 0;
   };
 
   const getCategoryUnreadCount = (categoryId: string) => {

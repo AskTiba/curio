@@ -216,7 +216,7 @@ export async function getFeedUnreadCounts(): Promise<{ feedId: string; categoryI
       .where(eq(userFeeds.userId, userId))
       .groupBy(userFeeds.feedId, userFeeds.categoryId);
 
-    return results;
+    return results.map(r => ({ ...r, unreadCount: Number(r.unreadCount) }));
   } catch (error) {
     console.error("[getFeedUnreadCounts] Failed:", error);
     return [];
